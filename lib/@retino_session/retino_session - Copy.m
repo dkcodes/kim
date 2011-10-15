@@ -10,7 +10,7 @@ classdef retino_session < handle
         a_patch
         a_source
         a_kern
-        chan
+        a_chan
         time
         default_corner_vert
         
@@ -20,8 +20,8 @@ classdef retino_session < handle
         ctf
         ctf_emp
         
-        megChan = 1:272;
-        eegChan = 273:327;
+        meg_chan = 1:272;
+        eeg_chan = 273:327;
         
         h
         a
@@ -138,19 +138,19 @@ classdef retino_session < handle
 				avgdata = obj.data.mean;
 				switch chanType
 					case 'meg'
-						chan = obj.megChan;
+						a_chan = obj.meg_chan;
 					case 'eeg'
-						chan = obj.eegChan;
+						a_chan = obj.eeg_chan;
 					case 'meeg'
-						chan = [obj.megChan obj.eegChan];
+						a_chan = [obj.meg_chan obj.eeg_chan];
 					otherwise
 						error('Must define channel type');
 				end
-				nSource = 2; %% This should be taken out to script/session settings for generality
-				nAllChan = length([obj.megChan obj.eegChan]);
+				n_source = 2; %% This should be taken out to script/session settings for generality
+				nAllChan = length([obj.meg_chan obj.eeg_chan]);
 				for i_patch = 1:length(a_patch)
 					aEP_F = (1:nAllChan)+(i_patch-1)*nAllChan;
-					for i_source = 1:nSource
+					for i_source = 1:n_source
 						ai_patch = obj.find_patch_source_index(a_patch(i_patch), i_source);
 
 						t.sign = 1;
@@ -166,11 +166,11 @@ classdef retino_session < handle
 				% Here I found that ME_Factor of 1e7 to be good
 				aEP_data = []; aEP_F = []; aEP_F_meg = []; aEP_data_meg = [];
 				for i_patch = 1:length(a_patch)
-					aEP_data = [aEP_data (chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-					%             aEP_eeg_data = [aEP_eeg_data (obj.eegChan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-					aEP_data_meg = [aEP_data_meg (obj.megChan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-					aEP_F = [aEP_F (chan)+(i_patch-1)*nAllChan];
-					aEP_F_meg = [aEP_F_meg obj.megChan+(i_patch-1)*nAllChan];
+					aEP_data = [aEP_data (a_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+					%             aEP_eeg_data = [aEP_eeg_data (obj.eeg_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+					aEP_data_meg = [aEP_data_meg (obj.meg_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+					aEP_F = [aEP_F (a_chan)+(i_patch-1)*nAllChan];
+					aEP_F_meg = [aEP_F_meg obj.meg_chan+(i_patch-1)*nAllChan];
 				end
 				ME_Factor = [1*1e-7];
 				avgdata(aEP_data_meg,:) = avgdata(aEP_data_meg,:)/ME_Factor;
@@ -195,37 +195,37 @@ classdef retino_session < handle
 				error('Should not need this any more');
 			end
 			function out = select_data_ind(obj, a_patch, chanType)
-				aEP_data = []; nAllChan = length([obj.megChan obj.eegChan]);
+				aEP_data = []; nAllChan = length([obj.meg_chan obj.eeg_chan]);
 				switch chanType
 					case 'meg'
-						chan = obj.megChan;
+						a_chan = obj.meg_chan;
 					case 'eeg'
-						chan = obj.eegChan;
+						a_chan = obj.eeg_chan;
 					case 'meeg'
-						chan = [obj.megChan obj.eegChan];
+						a_chan = [obj.meg_chan obj.eeg_chan];
 					otherwise
 						error('Must define channel type');
 				end
 				for i_patch = 1:length(a_patch)
-					aEP_data = [aEP_data (chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+					aEP_data = [aEP_data (a_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
 				end
 				out = aEP_data;
 			end
 			function out = select_chan(obj, chanType, iRetinoPatch)
 				switch chanType
 					case 'meg'
-						chan = obj.megChan;
+						a_chan = obj.meg_chan;
 					case 'eeg'
-						chan = obj.eegChan;
+						a_chan = obj.eeg_chan;
 					case 'meeg'
-						chan = [obj.megChan obj.eegChan];
+						a_chan = [obj.meg_chan obj.eeg_chan];
 					otherwise
 						error('Must define channel type');
 				end
 				if nargin < 3
 					iRetinoPatch = 1;
 				end
-				nChan = size(chan,2);
+				nChan = size(a_chan,2);
 				out = (1:nChan)+(iRetinoPatch-1)*nChan;
 			end
 			function obj = fill_session_patch_flat_vert(obj)
@@ -256,7 +256,7 @@ classdef retino_session < handle
 						ai_source = obj.a_source(i_source);
 						t.rp = obj.retinoPatch(ai_source, ai_patch);
 						t.F = t.rp.F.mean.norm;
-						Fall = [Fall t.F(obj.chan)];
+						Fall = [Fall t.F(obj.a_chan)];
 						Vall = obj.concat_V_kern(t.rp);
 					end
 					thisPatch.timefcn = Fall\Vall;
@@ -276,7 +276,7 @@ classdef retino_session < handle
 						ai_source = obj.a_source(i_source);
 						t.rp = obj.retinoPatch(ai_source, ai_patch);
 						t.F = t.rp.Femp.mean.norm;
-						Fall = [Fall t.F(obj.chan)];
+						Fall = [Fall t.F(obj.a_chan)];
 						Vall = obj.concat_V_kern(t.rp);
 					end
 					thisPatch.timefcn = Fall\Vall;
@@ -298,7 +298,7 @@ classdef retino_session < handle
 
 						t.V = obj.concat_V_kern(t.rp);
 						V(rowInd,:) = t.V;
-						F(rowInd, i_source) = t.rp.F.mean.norm(obj.chan, :);
+						F(rowInd, i_source) = t.rp.F.mean.norm(obj.a_chan, :);
 					end
 				end
 				obj.ctf = F\V;
@@ -313,7 +313,7 @@ classdef retino_session < handle
 						t.rp = obj.retinoPatch(ai_source, ai_patch);
 
 						V(rowInd,:) = obj.concat_V_kern(t.rp);
-						F(rowInd, i_source) = t.rp.Femp.mean.norm(obj.chan, :);
+						F(rowInd, i_source) = t.rp.Femp.mean.norm(obj.a_chan, :);
 					end
 				end
 				obj.ctf_emp = F\V;
@@ -588,8 +588,8 @@ classdef retino_session < handle
 				V = [];
 				for i_kern = 1:length(rp.session.a_kern)
 					ai_kern = rp.session.a_kern(i_kern);
-					%              V = [V squeeze(rp.Vdata(rp.session.chan, ai_kern,:))];
-					V = [V squeeze(rp.Vdata(rp.session.chan, i_kern,:))];
+					%              V = [V squeeze(rp.Vdata(rp.session.a_chan, ai_kern,:))];
+					V = [V squeeze(rp.Vdata(rp.session.a_chan, i_kern,:))];
 				end    
 			end
 			function timefcn_handler(src, event)

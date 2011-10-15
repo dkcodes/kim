@@ -9,7 +9,7 @@ function obj = fill_ctf(obj, a_patch, chanType)
 
 			t.V = obj.concat_V_kern(t.rp);
 			V(rowInd,:) = t.V;
-			F(rowInd, i_source) = t.rp.F.mean.norm(obj.chan, :);
+			F(rowInd, i_source) = t.rp.F.mean.norm(obj.a_chan, :);
 		end
 	end
 	obj.ctf = F\V;

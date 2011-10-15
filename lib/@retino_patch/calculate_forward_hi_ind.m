@@ -3,7 +3,7 @@ function obj = calculate_forward_hi_ind(obj)
 	a_vert = obj.hiResVert;
 	fwd = obj.session.fwd;
 	rs = obj.session;
-	chan = rs.chan;
+	a_chan = rs.a_chan;
 	switch obj.hemi
 		case 'L'
 			src = fwd.src(1);
@@ -14,9 +14,9 @@ function obj = calculate_forward_hi_ind(obj)
 	end
 	nn = src.nn(a_vert,:); 
 	aa = (rs.a(a_vert)-1)*3;
-	Fx=fwd.sol.data(chan,1+aa);
-	Fy=fwd.sol.data(chan,2+aa);
-	Fz=fwd.sol.data(chan,3+aa);
+	Fx=fwd.sol.data(a_chan,1+aa);
+	Fy=fwd.sol.data(a_chan,2+aa);
+	Fz=fwd.sol.data(a_chan,3+aa);
 	for i_vert = 1:length(a_vert)
 		solInteobj(:, i_vert) = [Fx(:,i_vert) Fy(:,i_vert) Fz(:,i_vert)]*nn(i_vert,:)';
 	end

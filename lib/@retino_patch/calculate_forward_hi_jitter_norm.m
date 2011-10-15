@@ -1,7 +1,7 @@
 function obj = calculate_forward_hi_jitter_norm(obj)
 	a_vert = obj.hiResVert;
 	rs = obj.session;
-	chan = rs.chan;
+	a_chan = rs.a_chan;
 	fwd = obj.session.fwd;
 	jitter_angle = pi/12;
 
@@ -31,9 +31,9 @@ function obj = calculate_forward_hi_jitter_norm(obj)
 		otherwise
 			error();
 	end
-	Fx=fwd.sol.data(chan,1+aa);
-	Fy=fwd.sol.data(chan,2+aa);
-	Fz=fwd.sol.data(chan,3+aa);
-	obj.F.bem_jittered_norm.mean.norm(chan,:)  = [Fx Fy Fz]*nn(:);
+	Fx=fwd.sol.data(a_chan,1+aa);
+	Fy=fwd.sol.data(a_chan,2+aa);
+	Fz=fwd.sol.data(a_chan,3+aa);
+	obj.F.bem_jittered_norm.mean.norm(a_chan,:)  = [Fx Fy Fz]*nn(:);
 	%obj.F.bem_jittered_norm.mean.norm  = [Fx Fy Fz]*nn(:);
 end %k

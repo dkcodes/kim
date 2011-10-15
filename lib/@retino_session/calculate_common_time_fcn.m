@@ -2,19 +2,19 @@ function out = calculate_common_time_fcn(obj, a_patch, chanType)
 	avgdata = obj.data.mean;
 	switch chanType
 		case 'meg'
-			chan = obj.megChan;
+			a_chan = obj.meg_chan;
 		case 'eeg'
-			chan = obj.eegChan;
+			a_chan = obj.eeg_chan;
 		case 'meeg'
-			chan = [obj.megChan obj.eegChan];
+			a_chan = [obj.meg_chan obj.eeg_chan];
 		otherwise
 			error('Must define channel type');
 	end
-	nSource = 2; %% This should be taken out to script/session settings for generality
-	nAllChan = length([obj.megChan obj.eegChan]);
+	n_source = 2; %% This should be taken out to script/session settings for generality
+	nAllChan = length([obj.meg_chan obj.eeg_chan]);
 	for i_patch = 1:length(a_patch)
 		aEP_F = (1:nAllChan)+(i_patch-1)*nAllChan;
-		for i_source = 1:nSource
+		for i_source = 1:n_source
 			ai_patch = obj.find_patch_source_index(a_patch(i_patch), i_source);
 
 			t.sign = 1;
@@ -30,11 +30,11 @@ function out = calculate_common_time_fcn(obj, a_patch, chanType)
 	% Here I found that ME_Factor of 1e7 to be good
 	aEP_data = []; aEP_F = []; aEP_F_meg = []; aEP_data_meg = [];
 	for i_patch = 1:length(a_patch)
-		aEP_data = [aEP_data (chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-		%             aEP_eeg_data = [aEP_eeg_data (obj.eegChan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-		aEP_data_meg = [aEP_data_meg (obj.megChan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
-		aEP_F = [aEP_F (chan)+(i_patch-1)*nAllChan];
-		aEP_F_meg = [aEP_F_meg obj.megChan+(i_patch-1)*nAllChan];
+		aEP_data = [aEP_data (a_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+		%             aEP_eeg_data = [aEP_eeg_data (obj.eeg_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+		aEP_data_meg = [aEP_data_meg (obj.meg_chan)+(find(obj.a_patch==a_patch(i_patch))-1)*nAllChan];
+		aEP_F = [aEP_F (a_chan)+(i_patch-1)*nAllChan];
+		aEP_F_meg = [aEP_F_meg obj.meg_chan+(i_patch-1)*nAllChan];
 	end
 	ME_Factor = [1*1e-7];
 	avgdata(aEP_data_meg,:) = avgdata(aEP_data_meg,:)/ME_Factor;

@@ -10,7 +10,7 @@ classdef retino_session < handle
         a_patch
         a_source
         a_kern
-        chan
+        a_chan
         time
         default_corner_vert
         
@@ -20,8 +20,8 @@ classdef retino_session < handle
         ctf
         ctf_emp
         
-        megChan = 1:272;
-        eegChan = 273:327;
+        meg_chan = 1:272;
+        eeg_chan = 273:327;
         
         h
         a
@@ -91,8 +91,8 @@ classdef retino_session < handle
 				V = [];
 				for i_kern = 1:length(rp.session.a_kern)
 					ai_kern = rp.session.a_kern(i_kern);
-					%              V = [V squeeze(rp.Vdata(rp.session.chan, ai_kern,:))];
-					% V = [V squeeze(rp.Vdata(rp.session.chan, i_kern,:))];
+					%              V = [V squeeze(rp.Vdata(rp.session.a_chan, ai_kern,:))];
+					% V = [V squeeze(rp.Vdata(rp.session.a_chan, i_kern,:))];
 					V = [V squeeze(rp.Vdata(:, i_kern,:))];
 				end
 			end

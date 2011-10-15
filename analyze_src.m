@@ -1,25 +1,25 @@
+close all;
 clearvars -regexp [a-Z]* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
 try, rmappdata(0, 'fwd'); end
-close all;
-% subj_id = 'skeri0001'; n_spokes = 4; n_rings =2; n_patch = n_spokes*n_rings; noise_level = 0; a_source_accounted = [1 2];
-%n_spokes = 4; n_rings =2; n_patch = n_spokes*n_rings; noise_level = 0; a_source_accounted = [1 2];
-
-% n_spokes    = 12;
-% n_rings     = 4;          nPatch = n_spokes*n_rings; 
-a_kern      = [1];
 
 
-(1:n_spokes/2)
+if ~exist('toggle_svd_batch', 'var')
+  subj_id = 'skeri0001'; 
+  n_spokes = 16; n_rings = 4; n_patch = n_spokes*n_rings; 
+  noise_level = 0; 
+  a_source_accounted = [1 2];
+end
 
-patches.left = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
-patches.up = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
-patches.down = patches.up(:)'+2;
-patches.up = setdiff(1:n_spokes*n_rings, patches.down);
-patches.right = repmat((1:n_spokes/2)',[1 n_rings])+repmat(n_spokes/2+[0:n_rings-1]*n_spokes,[n_spokes/2 1])
-patches.all = [1:n_spokes*n_rings];
-a_patch      = [patches.all];
-a_source     = [1 2 3];
 
+patches.all   = [1:n_spokes*n_rings];
+patches.right  = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
+patches.right = patches.right(:)';
+patches.left  = setdiff(patches.all, patches.right);
+patches.down  = patches.right+n_spokes/4;
+patches.up    = setdiff(patches.all, patches.down);
+a_patch       = [patches.left];
+a_source      = [1 2];
+a_kern        = [1];
 
 dirs.data      = getenv('ANATOMY_DIR');
 dirs.fs4_data  = fullfile(dirs.data, 'FREESURFER_SUBS');
@@ -34,34 +34,34 @@ sph_fwd_filename   = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
 addpath('./lib');
 add_lib();
 if isempty(getappdata(0, 'fwd'))
-   % To speed up loading very large data matrices
-   disp('saving root variables');
-   if ~exist('fwd', 'var')
-      fwd=mne_read_forward_solution(fwd_filename);
-      sph_fwd = mne_read_forward_solution(sph_fwd_filename);
-   end
-   fwdtrue = fwd;
-   setappdata(0, 'fwd',        fwd);
-   setappdata(0, 'fwdtrue',    fwdtrue);
+  % To speed up loading very large data matrices
+  disp('saving root variables');
+  if ~exist('fwd', 'var')
+    fwd=mne_read_forward_solution(fwd_filename);
+    sph_fwd = mne_read_forward_solution(sph_fwd_filename);
+  end
+  fwdtrue = fwd;
+  setappdata(0, 'fwd',        fwd);
+  setappdata(0, 'fwdtrue',    fwdtrue);
 else
-   close all; clc;
-   fwd         = getappdata(0, 'fwd');
-   fwdtrue     = getappdata(0, 'fwdtrue');
+  close all; clc;
+  fwd         = getappdata(0, 'fwd');
+  fwdtrue     = getappdata(0, 'fwdtrue');
 end
 %% Experiment and Analysis Parameters Declarations
-megChan     = [1 60 120];    % all MEG
-eegChan     = 129:200;  % 1:55 EEG
-nDays       = 1;
+meg_chan     = [1 60 120];    % all MEG
+eeg_chan     = 129:200;  % 1:55 EEG
+n_days       = 1;
 time        = 1:30;
-allChan     = megChan;
-aDays       = 1;
+a_chan     = meg_chan;
+a_days       = 1;
 s_rois.name      = {'V3D-L'    'V2D-L'    'V1D-L'    'V1V-L'    'V2V-L'    'V3V-L' ...
-               'V3D-R'    'V2D-R'    'V1D-R'    'V1V-R'    'V2V-R'    'V3V-R'    };
+  'V3D-R'    'V2D-R'    'V1D-R'    'V1V-R'    'V2V-R'    'V3V-R'    };
 s_rois.type = 'mesh';
-nTime       = numel(time);
-nAllChan    = length(allChan);
-nSource     = length(a_source);
-VEPavg = NaN(n_patch, nAllChan, nTime);
+n_time       = numel(time);
+n_chan    = length(a_chan);
+n_source     = length(a_source);
+VEPavg = NaN(n_patch, n_chan, n_time);
 
 %% Define Session
 rs = retino_session;
@@ -75,14 +75,15 @@ rs.design.n_rings  = n_rings;
 
 rs.a_patch = a_patch;
 rs.data.mean = VEPavg;
-rs.chan = megChan;
+rs.a_chan = meg_chan;
 rs.time = time;
 rs.fwd = fwd;
-rs.sph_fwd = sph_fwd;
+rs.sph_fwd = sph_fwd; 
 rs.a_source = a_source;
 rs.a_kern = a_kern;
-rs.megChan = megChan;
-rs.eegChan = eegChan;
+rs.meg_chan = meg_chan;
+rs.eeg_chan = eeg_chan;
+clear *fwd*
 
 rs.interpolate_fwd();
 r_pre           = retino_preproc(rs);
@@ -106,15 +107,16 @@ rplot.plot_flat;
 
 %% Define Simulation parameters
 % rs.a_kern = [1 2 3 4 5];
-nKernels    = numel(rs.a_kern);
+n_kern    = numel(rs.a_kern);
 toggle_simdata = 1;
 if toggle_simdata == 1
-    cfg_sim.rs = rs;                    % Define simulation configuration
-    cfg_sim.noise_level = noise_level;
-    r_sim = retino_sim(cfg_sim);        % Construct simulation object
-    VEPavg_sim = r_sim.make_sim_data(); % Do Simulation
-    rs.data.mean = VEPavg_sim;          % fill rs.data.mean with simulated data
-    V = rs.sim.true.timefcn;            % fill V with true V
+  cfg_sim.rs = rs;                    % Define simulation configuration
+  cfg_sim.noise_level = noise_level;
+  r_sim = retino_sim(cfg_sim);        % Construct simulation object
+  VEPavg_sim = r_sim.make_sim_data(); % Do Simulation
+  rs.data.mean = VEPavg_sim;          % fill rs.data.mean with simulated data
+  V = rs.sim.true.timefcn;            % fill V with true V
+  clear VEP*
 end
 rs.a_source = a_source_accounted;
 rs.fill_session_patch_Vdata;
@@ -124,6 +126,10 @@ rs.fill_session_patch_timefcn;
 rs.fill_Femp(rs.a_patch, 'meg');
 % rs.fill_ctf_Femp(rs.a_patch, 'meg');
 rs.fill_session_patch_timefcn_emp;
+return
+
+
+
 rs.sim.i_sub = i_sub;
 rplot.plot_flat_rois();
 stat(i_sub, :) = rs.sim.patch_stat;
@@ -135,25 +141,25 @@ stat(i_sub, :) = rs.sim.patch_stat;
 %c_pair = {[1 1], [2 2], [3 3], [1 2], [1 3], [2 3]};
 %all_F = [];
 %for ai_patch = a_patch
-	%all_F = [all_F [rp(1, ai_patch).F.mean.norm'; rp(2, ai_patch).F.mean.norm'; rp(3, ai_patch).F.mean.norm']]; 
+%all_F = [all_F [rp(1, ai_patch).F.mean.norm'; rp(2, ai_patch).F.mean.norm'; rp(3, ai_patch).F.mean.norm']]; 
 %end
 %for i_pair = 1:numel(c_pair)
-	%ci_pair = c_pair{i_pair};
-	%dot_prod_1(i_sub, i_pair) = sum(all_F(ci_pair(1),:) .* all_F(ci_pair(2),:));
+%ci_pair = c_pair{i_pair};
+%dot_prod_1(i_sub, i_pair) = sum(all_F(ci_pair(1),:) .* all_F(ci_pair(2),:));
 %end
 
 
 return
 
 for ai_patch = a_patch
-	%roi_area(i_sub, ai_source) = 0;
-	dot_prod_2(ai_patch, 1) = 0;
-	for i_pair = 1:numel(c_pair)
-		ci_pair = c_pair{i_pair};
-		dot_prod_2(ai_patch, i_pair) = ...
-			sum(rp(ci_pair(1), ai_patch).F.mean.norm .* rp(ci_pair(2), ai_patch).F.mean.norm);
-		%roi_area(i_sub, ai_source) = roi_area(i_sub, ai_source) + sum(t.rp.F.weight);
-	end
+  %roi_area(i_sub, ai_source) = 0;
+  dot_prod_2(ai_patch, 1) = 0;
+  for i_pair = 1:numel(c_pair)
+    ci_pair = c_pair{i_pair};
+    dot_prod_2(ai_patch, i_pair) = ...
+      sum(rp(ci_pair(1), ai_patch).F.mean.norm .* rp(ci_pair(2), ai_patch).F.mean.norm);
+    %roi_area(i_sub, ai_source) = roi_area(i_sub, ai_source) + sum(t.rp.F.weight);
+  end
 end
 
 
@@ -164,12 +170,12 @@ return
 
 
 for i_patch = 1:length(rs.a_patch)
-	ai_patch = rs.a_patch(i_patch);
-	for i_source = 1:length(rs.a_source)
-		ai_source = rs.a_source(i_source);
-		t.rp = rs.retinoPatch(ai_source, ai_patch);
-		t.rp.F.com = t.rp.F.mean.norm; %For common condition
-	end
+  ai_patch = rs.a_patch(i_patch);
+  for i_source = 1:length(rs.a_source)
+    ai_source = rs.a_source(i_source);
+    t.rp = rs.retinoPatch(ai_source, ai_patch);
+    t.rp.F.com = t.rp.F.mean.norm; %For common condition
+  end
 end
 
 %% Show Correlation Plots
@@ -178,46 +184,46 @@ figure(1); clf(1);
 subplot(1,5,1:2); hold on;
 colors = jet(length(a_patch));
 for i_patch = 1:length(rs.a_patch) 
-	ai_patch = rs.a_patch(i_patch);
-	for i_source = 1:length(rs.a_source)
-		ai_source = rs.a_source(i_source);
-		t.rp = rs.retinoPatch(ai_source, ai_patch);
+  ai_patch = rs.a_patch(i_patch);
+  for i_source = 1:length(rs.a_source)
+    ai_source = rs.a_source(i_source);
+    t.rp = rs.retinoPatch(ai_source, ai_patch);
 
-		M = max(t.rp.timefcn);
-		m = min(t.rp.timefcn);
-		plot((t.rp.timefcn-m)/(M-m)+t.rp.ind*.1+ai_source*4, 'o-', 'color', t.rp.faceColor);
+    M = max(t.rp.timefcn);
+    m = min(t.rp.timefcn);
+    plot((t.rp.timefcn-m)/(M-m)+t.rp.ind*.1+ai_source*4, 'o-', 'color', t.rp.faceColor);
 
-		M = max(t.rp.timefcn_emp);
-		m = min(t.rp.timefcn_emp);
-		plot((t.rp.timefcn_emp-m)/(M-m)+2+t.rp.ind*.1+ai_source*4, '*-', 'color', t.rp.faceColor);
-	end
+    M = max(t.rp.timefcn_emp);
+    m = min(t.rp.timefcn_emp);
+    plot((t.rp.timefcn_emp-m)/(M-m)+2+t.rp.ind*.1+ai_source*4, '*-', 'color', t.rp.faceColor);
+  end
 end
 
 for i_patch = 1:length(rs.a_patch)
-	ai_patch = rs.a_patch(i_patch);
-	for i_source = 1:length(rs.a_source)
-		ai_source = rs.a_source(i_source);
-		t.rp = rs.retinoPatch(ai_source, ai_patch);
-		tt = corrcoef(reshape(V{ai_source}(1:nKernels,:)',1,nKernels*nTime), rp(ai_source, ai_patch).timefcn_emp);
-		t.rp.sim.cor.emp = tt(1,2); 
-		tt = corrcoef(reshape(V{ai_source}(1:nKernels,:)',1,nKernels*nTime), rp(ai_source, ai_patch).timefcn);
-		t.rp.sim.cor.bem = tt(1,2);
-	end
+  ai_patch = rs.a_patch(i_patch);
+  for i_source = 1:length(rs.a_source)
+    ai_source = rs.a_source(i_source);
+    t.rp = rs.retinoPatch(ai_source, ai_patch);
+    tt = corrcoef(reshape(V{ai_source}(1:n_kern,:)',1,n_kern*n_time), rp(ai_source, ai_patch).timefcn_emp);
+    t.rp.sim.cor.emp = tt(1,2); 
+    tt = corrcoef(reshape(V{ai_source}(1:n_kern,:)',1,n_kern*n_time), rp(ai_source, ai_patch).timefcn);
+    t.rp.sim.cor.bem = tt(1,2);
+  end
 end
 
 for i_source = 1:length(rs.a_source)
-	ai_source = rs.a_source(i_source);
-	subplot(1,5,2+ai_source);
-	for i_patch = 1:length(rs.a_patch)
-		ai_patch = rs.a_patch(i_patch);
-		t.rp = rs.retinoPatch(ai_source, ai_patch);
-		plot(ai_patch,t.rp.sim.cor.emp, '*', 'color', t.rp.faceColor); hold on;
-		plot(ai_patch,t.rp.sim.cor.bem, 'o', 'color', t.rp.faceColor);
-	end
-	ylim([-1 1]);
-	try
-		xlim([1 numel(a_patch)]);
-	end
+  ai_source = rs.a_source(i_source);
+  subplot(1,5,2+ai_source);
+  for i_patch = 1:length(rs.a_patch)
+    ai_patch = rs.a_patch(i_patch);
+    t.rp = rs.retinoPatch(ai_source, ai_patch);
+    plot(ai_patch,t.rp.sim.cor.emp, '*', 'color', t.rp.faceColor); hold on;
+    plot(ai_patch,t.rp.sim.cor.bem, 'o', 'color', t.rp.faceColor);
+  end
+  ylim([-1 1]);
+  try
+    xlim([1 numel(a_patch)]);
+  end
 end
 
 set(171, 'Position', [10   100   1000   500])

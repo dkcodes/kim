@@ -258,9 +258,9 @@ classdef retino_plotter < handle
 				[junk, x, y, junk, junk, junk] = textread('./MONTREAL.lay', '%d %f %f %f %f %s');
 				switch obj.dataType
 					case 'meg'
-						chan = rs.megChan;
+						a_chan = rs.meg_chan;
 					case 'eeg'
-						chan = rs.eegChan;
+						a_chan = rs.eeg_chan;
 					otherwise
 						error();
 				end
@@ -272,8 +272,8 @@ classdef retino_plotter < handle
 							aiPatch = iPatch;
 							irp = rs.find_patch_source_index(aiPatch, 2);
 							this.rp = rs.retinoPatch(irp);
-							maxV = max(maxV, max(this.rp.Femp.mean.norm(chan,:)));
-							minV = min(minV, min(this.rp.Femp.mean.norm(chan,:)));
+							maxV = max(maxV, max(this.rp.Femp.mean.norm(a_chan,:)));
+							minV = min(minV, min(this.rp.Femp.mean.norm(a_chan,:)));
 						end
 						for iPatch = rs.a_patch;
 							aiPatch = iPatch;
@@ -288,19 +288,19 @@ classdef retino_plotter < handle
 							else                                dotSize = 15;
 							end
 							switch obj.ori
-								case 'x', V = this.rp.F.mean.x(chan,:);
-								case' y', V = this.rp.F.mean.y(chan,:);
-								case 'z', V = this.rp.F.mean.z(chan,:);
+								case 'x', V = this.rp.F.mean.x(a_chan,:);
+								case' y', V = this.rp.F.mean.y(a_chan,:);
+								case 'z', V = this.rp.F.mean.z(a_chan,:);
 								otherwise
-									V = this.rp.Femp.mean.norm(chan,:);
+									V = this.rp.Femp.mean.norm(a_chan,:);
 							end
 							%                   C = (V-min(V))/(max(V)-min(V));
 							C = V;
-							h.scatter = scatter(x(chan),y(chan),'filled');
+							h.scatter = scatter(x(a_chan),y(a_chan),'filled');
 							set(h.scatter, 'SizeData', dotSize, 'CData', C);
 							set(gca, 'Visible', 'off', 'CLim', [minV maxV])
-							xmax = min(x(chan));
-							ymax = max(y(chan));
+							xmax = min(x(a_chan));
+							ymax = max(y(a_chan));
 							text(xmax,ymax, sprintf('%1.0e, %1.0e',(V'*V), max(V)-min(V)));
 						end
 					case 'D2-Table'
@@ -313,14 +313,14 @@ classdef retino_plotter < handle
 								else                                dotSize = 15;
 								end
 								switch obj.ori
-									case 'x', V = this.rp.F.mean.x(chan,:);
-									case' y', V = this.rp.F.mean.y(chan,:);
-									case 'z', V = this.rp.F.mean.z(chan,:);
+									case 'x', V = this.rp.F.mean.x(a_chan,:);
+									case' y', V = this.rp.F.mean.y(a_chan,:);
+									case 'z', V = this.rp.F.mean.z(a_chan,:);
 									otherwise
-										V = this.rp.Femp.mean.norm(chan,:);
+										V = this.rp.Femp.mean.norm(a_chan,:);
 								end
 								C = (V-min(V))/(max(V)-min(V));
-								h.scatter = scatter(x(chan),y(chan),'filled', 'CData', C);
+								h.scatter = scatter(x(a_chan),y(a_chan),'filled', 'CData', C);
 								set(h.scatter, 'SizeData', dotSize, 'CData', C); set(gca, 'Visible', 'off')
 							end
 						end
@@ -331,12 +331,12 @@ classdef retino_plotter < handle
 							switch pp.individual
 								case true
 									for iVert = 1:length(rs(aiPatch).loResVert)
-										Fmax = max(max(Fmax, eval(sprintf('rs.retinoPatch(aiPatch).F.individual.%s(chan,iVert)',rs.ori))));
-										Fmin = min(min(Fmin, eval(sprintf('rs.retinoPatch(aiPatch).F.individual.%s(chan,iVert)',rs.ori))));
+										Fmax = max(max(Fmax, eval(sprintf('rs.retinoPatch(aiPatch).F.individual.%s(a_chan,iVert)',rs.ori))));
+										Fmin = min(min(Fmin, eval(sprintf('rs.retinoPatch(aiPatch).F.individual.%s(a_chan,iVert)',rs.ori))));
 									end
 								case false
-									Fmax = max(max(Fmax, eval(sprintf('rs.retinoPatch(aiPatch).F.mean.%s(chan)',rs.ori))));
-									Fmin = min(min(Fmin, eval(sprintf('rs.retinoPatch(aiPatch).F.mean.%s(chan)',rs.ori))));
+									Fmax = max(max(Fmax, eval(sprintf('rs.retinoPatch(aiPatch).F.mean.%s(a_chan)',rs.ori))));
+									Fmin = min(min(Fmin, eval(sprintf('rs.retinoPatch(aiPatch).F.mean.%s(a_chan)',rs.ori))));
 								otherwise
 							end
 						end
@@ -356,15 +356,15 @@ classdef retino_plotter < handle
 										this.vert = obj(aiPatch).loResVert(iVert);
 										this.offset = nodes(nodes==this.vert,2:4);
 										switch obj.ori
-											case 'x', V = this.obj.F.individual.x(chan,iVert);
-											case 'y', V = this.obj.F.individual.y(chan,iVert);
-											case 'z', V = this.obj.F.individual.z(chan,iVert);
+											case 'x', V = this.obj.F.individual.x(a_chan,iVert);
+											case 'y', V = this.obj.F.individual.y(a_chan,iVert);
+											case 'z', V = this.obj.F.individual.z(a_chan,iVert);
 											otherwise
-												V = this.obj.F.individual.norm(chan,iVert);
+												V = this.obj.F.individual.norm(a_chan,iVert);
 										end
-										ei = this.offset(1)*ones(size(chan,2),1)*1.1;
-										ej = this.offset(2)  + x(chan)*.7e-3;
-										ek = this.offset(3)  + y(chan)*.7e-3;
+										ei = this.offset(1)*ones(size(a_chan,2),1)*1.1;
+										ej = this.offset(2)  + x(a_chan)*.7e-3;
+										ek = this.offset(3)  + y(a_chan)*.7e-3;
 										C = (V-Fmin)/(Fmax-Fmin);
 										if size(ei,1) < 101
 											% Clumsy way of getting around slow
@@ -381,15 +381,15 @@ classdef retino_plotter < handle
 									this.vert = obj(aiPatch).loResVert(1);
 									this.offset = nodes(nodes==this.vert,2:4);
 									switch obj.ori
-										case 'x', V = this.obj.F.mean.x(chan,:);
-										case 'y', V = this.obj.F.mean.y(chan,:);
-										case 'z', V = this.obj.F.mean.z(chan,:);
+										case 'x', V = this.obj.F.mean.x(a_chan,:);
+										case 'y', V = this.obj.F.mean.y(a_chan,:);
+										case 'z', V = this.obj.F.mean.z(a_chan,:);
 										otherwise
-											V = this.obj.F.mean.norm(chan,:);
+											V = this.obj.F.mean.norm(a_chan,:);
 									end
-									ei = this.offset(1)*ones(size(chan))*1.1;
-									ej = this.offset(2)  + x(chan)*1e-3;
-									ek = this.offset(3)  + y(chan)*1e-3;
+									ei = this.offset(1)*ones(size(a_chan))*1.1;
+									ej = this.offset(2)  + x(a_chan)*1e-3;
+									ek = this.offset(3)  + y(a_chan)*1e-3;
 									C = (V-Fmin)/(Fmax-Fmin);
 									h.scatter3 = scatter3(ei,ej,ek, 'filled');
 									set(h.scatter3, 'SizeData', dotSize, 'CData', C);

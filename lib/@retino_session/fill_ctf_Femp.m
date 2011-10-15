@@ -8,7 +8,7 @@ function obj = fill_ctf_Femp(obj, a_patch, chanType)
 			t.rp = obj.retinoPatch(ai_source, ai_patch);
 
 			V(rowInd,:) = obj.concat_V_kern(t.rp);
-			F(rowInd, i_source) = t.rp.Femp.mean.norm(obj.chan, :);
+			F(rowInd, i_source) = t.rp.Femp.mean.norm(obj.a_chan, :);
 		end
 	end
 	obj.ctf_emp = F\V;

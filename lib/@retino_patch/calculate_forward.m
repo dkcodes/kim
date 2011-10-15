@@ -8,8 +8,8 @@ function obj = calculate_forward(obj)
 		otherwise
 			error();
 	end
-	chan = 1:size(fwd.sol.data,1);
-	F.chan = chan;
+	a_chan = 1:size(fwd.sol.data,1);
+	F.a_chan = a_chan;
 	for iPnt = size(obj.sourceInd,2):-1:1
 		this.nn = nn(iPnt,:);
 		Fx(:,iPnt) = fwd.sol.data(:,(1)+(obj.sourceInd(iPnt)-1)*3);

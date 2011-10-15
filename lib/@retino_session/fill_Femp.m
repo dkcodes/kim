@@ -12,7 +12,7 @@ function obj = fill_Femp(obj, a_patch, chanType)
 			ai_source = obj.a_source(i_source);
 			t.rp = obj.retinoPatch(ai_source, ai_patch);
 			rowInd = select_chan(obj, chanType, i_patch);
-			t.rp.Femp.mean.norm(obj.chan,:) = Femp(rowInd,i_source);
+			t.rp.Femp.mean.norm(obj.a_chan,:) = Femp(rowInd,i_source);
 		end
 	end
 end
