@@ -233,7 +233,7 @@ function elp2fiff_jma()
 
 	data.evoked.aspect_kind = FIFF.FIFFV_ASPECT_AVERAGE;
 	ntrave = 1;
-	data.evoked.nave  = ntrave * sfreq; % number of time averages in noise cov calculation
+	data.evoked.nave  = ntrave * sfreq; % number of a_time averages in noise cov calculation
 	npretrigger = 0;
 	data.evoked.first = 0;
 	nsamples    = 1;

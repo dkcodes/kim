@@ -2,7 +2,6 @@ close all;
 clearvars -regexp [a-Z]* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
 try, rmappdata(0, 'fwd'); end
 
-
 if ~exist('toggle_svd_batch', 'var')
   subj_id = 'skeri0001'; 
   n_spokes = 16; n_rings = 4; n_patch = n_spokes*n_rings; 
@@ -10,16 +9,8 @@ if ~exist('toggle_svd_batch', 'var')
   a_source_accounted = [1 2];
 end
 
-
-patches.all   = [1:n_spokes*n_rings];
-patches.right  = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
-patches.right = patches.right(:)';
-patches.left  = setdiff(patches.all, patches.right);
-patches.down  = patches.right+n_spokes/4;
-patches.up    = setdiff(patches.all, patches.down);
-a_patch       = [patches.left];
-a_source      = [1 2];
-a_kern        = [1];
+addpath('./lib');
+add_lib();
 
 dirs.data      = getenv('ANATOMY_DIR');
 dirs.fs4_data  = fullfile(dirs.data, 'FREESURFER_SUBS');
@@ -30,9 +21,8 @@ dirs.mne       = fullfile(dirs.eeg, '_MNE_');
 dirs.berkeley  = fullfile(dirs.data, 'Berkeley', subj_id);
 fwd_filename   = fullfile(dirs.mne, [subj_id '-fwd.fif']);
 sph_fwd_filename   = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
+
 %% Environment preparations
-addpath('./lib');
-add_lib();
 if isempty(getappdata(0, 'fwd'))
   % To speed up loading very large data matrices
   disp('saving root variables');
@@ -48,18 +38,30 @@ else
   fwd         = getappdata(0, 'fwd');
   fwdtrue     = getappdata(0, 'fwdtrue');
 end
+
+
+
 %% Experiment and Analysis Parameters Declarations
+patches.all   = [1:n_spokes*n_rings];
+patches.right = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
+patches.right = patches.right(:)';
+patches.left  = setdiff(patches.all, patches.right);
+patches.down  = patches.right+n_spokes/4;
+patches.up    = setdiff(patches.all, patches.down);
+
+a_patch      = [patches.left];
+a_source     = [1 2];
+a_kern       = [1];
 meg_chan     = [1 60 120];    % all MEG
 eeg_chan     = 129:200;  % 1:55 EEG
-n_days       = 1;
-time        = 1:30;
-a_chan     = meg_chan;
+a_time         = 1:30;
+a_chan       = meg_chan;
 a_days       = 1;
-s_rois.name      = {'V3D-L'    'V2D-L'    'V1D-L'    'V1V-L'    'V2V-L'    'V3V-L' ...
+s_rois.name  = {'V3D-L'    'V2D-L'    'V1D-L'    'V1V-L'    'V2V-L'    'V3V-L' ...
   'V3D-R'    'V2D-R'    'V1D-R'    'V1V-R'    'V2V-R'    'V3V-R'    };
-s_rois.type = 'mesh';
-n_time       = numel(time);
-n_chan    = length(a_chan);
+s_rois.type  = 'mesh';
+n_time       = numel(a_time);
+n_chan       = length(a_chan);
 n_source     = length(a_source);
 VEPavg = NaN(n_patch, n_chan, n_time);
 
@@ -76,7 +78,7 @@ rs.design.n_rings  = n_rings;
 rs.a_patch = a_patch;
 rs.data.mean = VEPavg;
 rs.a_chan = meg_chan;
-rs.time = time;
+rs.a_time = a_time;
 rs.fwd = fwd;
 rs.sph_fwd = sph_fwd; 
 rs.a_source = a_source;

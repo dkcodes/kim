@@ -11,9 +11,9 @@ classdef retino_sim
 				rs = cfg.rs;
 				a_source = rs.a_source;
 				a_kern = rs.a_kern;
-				time = rs.time;
+				a_time = rs.a_time;
 				all_chan = rs.a_chan; 
-				n_time = numel(time);
+				n_time = numel(a_time);
 				n_kern = numel(rs.a_kern);
 				nAllChan = numel(rs.a_chan);
 				% Generate simulated source data
@@ -55,7 +55,7 @@ classdef retino_sim
 				VEPavg_sim = zeros(max(rs.a_patch), max(all_chan), n_kern, n_time);
 				%VEPavg_sim = zeros(max(rs.a_patch), nAllChan, n_kern, n_time);
 				for i_kern = 1:n_kern
-					ai_time = n_time*(i_kern-1)+time;
+					ai_time = n_time*(i_kern-1)+a_time;
 					for i_patch = 1:length(rs.a_patch)
 						ai_patch = rs.a_patch(i_patch);
 						for i_source = 1:length(rs.a_source)

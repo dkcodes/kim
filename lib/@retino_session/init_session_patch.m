@@ -34,6 +34,5 @@ function init_session_patch(obj)
 		fprintf(' ::: %0.1g sec \n', toc);
 	end
 	obj.retinoPatch = rp;
-	obj.fill_patch_source_index();
 	obj.fill_pt();
 end

@@ -1,17 +1,17 @@
 classdef retino_session < handle
     properties (SetObservable = true)
         subj_id
-        dirs
-        rois
-        
         retinoPatch
-        design
-        
+
         a_patch
         a_source
         a_kern
         a_chan
-        time
+        a_time
+        
+        dirs
+        rois
+        design
         default_corner_vert
         
         fwd
@@ -28,7 +28,6 @@ classdef retino_session < handle
         b
         
         sim
-        patch_source_index
         pt
         
         lh

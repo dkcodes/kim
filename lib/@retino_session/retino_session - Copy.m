@@ -11,7 +11,7 @@ classdef retino_session < handle
         a_source
         a_kern
         a_chan
-        time
+        a_time
         default_corner_vert
         
         fwd
