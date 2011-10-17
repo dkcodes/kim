@@ -60,7 +60,7 @@ rs.a_source = a_source;
 rs.a_kern = a_kern;
 rs.meg_chan = meg_chan;
 rs.eeg_chan = eeg_chan;
-clear *fwd*
+clear -regexp fwd
 
 rs.interpolate_fwd();
 r_pre           = retino_preproc(rs);
