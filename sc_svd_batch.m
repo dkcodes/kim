@@ -1,54 +1,52 @@
-s_subj={
-    'skeri0001'
-     'skeri0004'
-     'skeri0009'
-     'skeri0017'
-     'skeri0035'
-     'skeri0037'
-    %% 'skeri0039'
-     %'skeri0044'
-     %'skeri0048'
-     %'skeri0050'
-     %'skeri0051'
-     %'skeri0053'
-     %'skeri0054'
-     %'skeri0060'
-     %'skeri0066'
-     %'skeri0069'
-     %'skeri0071'
-     %'skeri0072'
-     %'skeri0075'
-     %'skeri0076'
-     %'skeri0078'
-     %'skeri0081'
-    };
+clear
+s_subj={                    
+'skeri0001'             
+'skeri0004'            
+'skeri0009'            
+'skeri0017'            
+'skeri0035'            
+'skeri0037'            
+%% 'skeri0039'          
+'skeri0044'           
+'skeri0048'           
+'skeri0050'           
+'skeri0051'           
+'skeri0053'           
+'skeri0054'           
+'skeri0060'           
+'skeri0066'           
+'skeri0069'           
+'skeri0071'           
+'skeri0072'           
+'skeri0075'           
+'skeri0076'           
+'skeri0078'           
+'skeri0081'           
+};
+g.dirs = 'a001';
+g.desc = 'test';
+g.list = s_subj;
 
-% load ./mat/svd_stat;
-svd_stat = [];
-t_svd = [];
-save ./mat/svd_stat svd_stat t_svd;
-for i_sub = 1:numel(s_subj)
-    subj_id = s_subj{i_sub};
-    load ./mat/svd_stat
-    n_spokes    = 4;
-    n_rings     = 4;
-    n_patch = n_spokes*n_rings;
-    noise_level = 0;
-    a_source_accounted = [1 2];
-    
-    
-    fprintf('\n %s \n\n\n\n', subj_id);
-    run('analyze_src')
-    load ./mat/svd_stat
-    run('script_svd')
-    saveas(1, fullfile('out', 'fig', subj_id), 'png')
-    svd_stat(i_sub).corr_VC = corr_VC;
-    svd_stat(i_sub).corr_VCTF = corr_VCTF;
-    svd_stat(i_sub).id = subj_id;
-    save svd_stat svd_stat t_svd
+
+toggle_make_params = 0;
+if toggle_make_params
+% Important! Make sure to change make_params;
+  make_params(g);
 end
 
-load ./mat/svd_stat
+info = load(fullfile('mat', g.dirs, 'info.mat'));
+for i_subj = 1:numel(s_subj)
+  this.filename = fullfile('mat', info.g.dirs, info.g.list{i_subj});
+  p = load_params(this.filename);
+  run('sc_analyze_src');
+  run('sc_svd');
+  saveas(1, fullfile('out', 'fig', subj_id), 'png')
+  svd_stat(i_subj).subj_id = subj_id;
+  svd_stat(i_subj).corr_VSVD = corr_VSVD;
+  svd_stat(i_subj).corr_VCTF = corr_VCTF;
+end
+continue;
+
 svd_stat_all = reshape([svd_stat.corr_VC],3, numel([svd_stat.corr_VC])/3)';
 tt_svd = t_svd;
 figure(1010); clf(1010);

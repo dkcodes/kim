@@ -1,5 +1,5 @@
-fn = fieldnames(params);
-for i = 1:numel(fn)
-  eval(sprintf('%s = params.%s;', fn{i}, fn{i}))
+fn = fieldnames(p);
+for i_fn = 1:numel(fn)
+  eval(sprintf('%s = p.%s;', fn{i_fn}, fn{i_fn}))
 end
-clear fn params i
+clear fn i_fn

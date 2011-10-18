@@ -1,10 +1,12 @@
 close all;
-clearvars -regexp .* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
+
+% clearvars -regexp .* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
+
 try, rmappdata(0, 'fwd'); end
-
-
 addpath('./lib');
 add_lib();
+sc_load_fieldnames();
+
 dirs.data      = getenv('ANATOMY_DIR');
 dirs.fs4_data  = fullfile(dirs.data, 'FREESURFER_SUBS');
 dirs.subj      = fullfile(dirs.fs4_data, [subj_id '_fs4']);
@@ -12,8 +14,8 @@ dirs.eeg       = fullfile(dirs.subj, [subj_id '_EEG']);
 dirs.bem       = fullfile(dirs.eeg, 'bem');
 dirs.mne       = fullfile(dirs.eeg, '_MNE_');
 dirs.berkeley  = fullfile(dirs.data, 'Berkeley', subj_id);
-fwd_filename   = fullfile(dirs.mne, [subj_id '-fwd.fif']);
-sph_fwd_filename   = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
+fwd_filename        = fullfile(dirs.mne, [subj_id '-fwd.fif']);
+sph_fwd_filename    = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
 
 %% Environment preparations
 if isempty(getappdata(0, 'fwd'))
@@ -31,8 +33,7 @@ else
   fwd         = getappdata(0, 'fwd');
   fwdtrue     = getappdata(0, 'fwdtrue');
 end %k
-p = make_params();
-sc_get_all_fields();
+
 
 n_time       = numel(a_time);
 n_chan       = length(a_chan);
@@ -102,8 +103,8 @@ rs.fill_session_patch_timefcn;
 rs.fill_Femp(rs.a_patch, 'meg');
 % rs.fill_ctf_Femp(rs.a_patch, 'meg');
 rs.fill_session_patch_timefcn_emp;
-return
-
+continue;
+disp('11111111111111111111111111111111111111111111111');
 
 
 rs.sim.i_sub = i_sub;
