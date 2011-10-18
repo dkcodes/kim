@@ -53,7 +53,7 @@ rs.design.n_rings  = n_rings;
 
 rs.a_patch = a_patch;
 rs.data.mean = VEPavg;
-rs.a_chan = meg_chan;
+rs.a_chan = a_chan;
 rs.a_time = a_time;
 rs.fwd = fwd;
 rs.sph_fwd = sph_fwd; 
@@ -89,6 +89,7 @@ toggle_simdata = 1;
 if toggle_simdata == 1
   cfg_sim.rs = rs;                    % Define simulation configuration
   cfg_sim.noise_level = noise_level;
+  cfg_sim.ref_chan = p.ref_chan; 
   r_sim = retino_sim(cfg_sim);        % Construct simulation object
   VEPavg_sim = r_sim.make_sim_data(); % Do Simulation
   rs.data.mean = VEPavg_sim;          % fill rs.data.mean with simulated data

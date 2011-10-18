@@ -38,6 +38,7 @@ function make_individual_params(filename, subj_id, auth)
 
   meg_chan     = 1:128;    % all MEG
   eeg_chan     = 129:200;  % 1:55 EEG
+  ref_chan     = 81;
   a_patch      = [patch_def.all];
   a_source     = [1 2 3];
   a_source_accounted = [1 2 3];

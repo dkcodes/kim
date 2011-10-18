@@ -1,4 +1,7 @@
 close all;
+
+stat(i_subj).subj_id = subj_id;
+
 temp.data = rs.data.mean;
 n_patch = size(temp.data,1);
 n_sens  = size(temp.data,2);
@@ -7,11 +10,11 @@ n_time  = size(temp.data,4);
 
 data = [];
 for i_patch = 1:numel(rs.a_patch)
-		ai_patch = rs.a_patch(i_patch);
-		t.rp = rp(1, ai_patch);
-    for i_kern = 1:size(temp.data,3)
-        data = [data; rs.concat_V_kern(t.rp)];
-    end
+  ai_patch = rs.a_patch(i_patch);
+  this.rp = rp(1, ai_patch);
+  for i_kern = 1:size(temp.data,3)
+    data = [data; rs.concat_V_kern(this.rp)];
+  end
 end
 [u,s,t] = svd(data);
 clc
@@ -21,13 +24,60 @@ for i_source = rs.a_source
   tt = corrcoef(t(:,i_source), V{i_source}); 
   corr_VSVD(i_source) = tt(1,2);
 end
+stat(i_subj).svd.T_all.corr = corr_VSVD;
 corr_VSVD
 
 for i_source = rs.a_source
   tt = corrcoef(rs.ctf(i_source,:), V{i_source}); 
   corr_VCTF(i_source) = tt(1,2);
 end
+stat(i_subj).true.T_all.corr = corr_VCTF;
 corr_VCTF
+
+% Calculate the angles between the F's of different sources.
+% The independence of time functions betwen V1/V2/V3 will
+% most likely be determined by the orthogonality of V1/V2/V3
+% topographies (i.e. rp(1,i).F Vs rp(2,i).F vs rp(3,i).F
+
+F_all =[];
+UF_all = [];
+for i_patch = 1:numel(rs.a_patch)
+  ai_patch = rs.a_patch(i_patch);
+  F = []; UF = [];
+  for i_source = rs.a_source
+    F(:,i_source) = rp(i_source, ai_patch).F.mean.norm;
+    UF(:,i_source) = u(:,i_source);
+  end
+  F_all = [F_all; F];
+  UF_all = [UF_all; UF];
+
+  for i_source = rs.a_source
+    stat(i_subj).true.F(i_patch).sum(i_source) = ...
+      F(:, i_source)' * F(:, i_source);
+    stat(i_subj).svd.F(i_patch).sum(i_source) = ...
+      UF(:, i_source)' * UF(:, i_source);
+    for j_source = rs.a_source
+      stat(i_subj).true.F(i_patch).angles(i_source, j_source) = ...
+        subspace( F(:, i_source), F(:, j_source) );
+      stat(i_subj).svd.F(i_patch).angles(i_source, j_source) = ...
+        subspace( UF(:, i_source), UF(:, j_source) );
+    end
+  end
+end
+for i_source = rs.a_source
+  stat(i_subj).true.F_all.sum = ...
+    F_all(:, i_source)' * F_all(:, i_source);
+  stat(i_subj).svd.F_all.sum = ...
+    UF_all(:, i_source)' * UF_all(:, i_source) ;
+  for j_source = rs.a_source
+    stat(i_subj).true.F_all.angles(i_source, j_source) = ...
+      subspace( F_all(:, i_source), F_all(:, j_source) );
+    stat(i_subj).svd.F_all.angles(i_source, j_source) = ...
+      subspace( UF_all(:, i_source), UF_all(:, j_source) );
+  end
+end
+
+
 
 h_svd = randi(1e6);
 figure(h_svd);
