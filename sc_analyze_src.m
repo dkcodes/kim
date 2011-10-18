@@ -90,6 +90,7 @@ if toggle_simdata == 1
   cfg_sim.rs = rs;                    % Define simulation configuration
   cfg_sim.noise_level = noise_level;
   cfg_sim.ref_chan = p.ref_chan; 
+  cfg_sim.v_amplitude = p.v_amplitude; 
   r_sim = retino_sim(cfg_sim);        % Construct simulation object
   VEPavg_sim = r_sim.make_sim_data(); % Do Simulation
   rs.data.mean = VEPavg_sim;          % fill rs.data.mean with simulated data
@@ -111,9 +112,6 @@ disp('11111111111111111111111111111111111111111111111');
 rs.sim.i_sub = i_sub;
 rplot.plot_flat_rois();
 stat(i_sub, :) = rs.sim.patch_stat;
-
-
-
 
 
 %c_pair = {[1 1], [2 2], [3 3], [1 2], [1 3], [2 3]};

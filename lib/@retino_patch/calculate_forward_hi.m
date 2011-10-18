@@ -18,6 +18,21 @@ function obj = calculate_forward_hi(obj)
 	Fx=fwd.sol.data(a_chan,1+aa);
 	Fy=fwd.sol.data(a_chan,2+aa);
 	Fz=fwd.sol.data(a_chan,3+aa);
+
+  % Referencing to Hood's electrode 81. (3rd electrode in a_chan)
+  Fx = Fx - repmat(Fx(3,:), size(Fx, 1), 1 );
+  Fy = Fy - repmat(Fy(3,:), size(Fy, 1), 1 );
+  Fz = Fz - repmat(Fz(3,:), size(Fz, 1), 1 );
+
+  % Average referencing
+  % Fx = Fx - repmat(mean(Fx), size(Fx, 1), 1 );
+  % Fy = Fy - repmat(mean(Fy), size(Fy, 1), 1 );
+  % Fz = Fz - repmat(mean(Fz), size(Fz, 1), 1 );
+
+
+
+
+
 	obj.F.mean.norm(a_chan,:)  = [Fx Fy Fz]*nn(:);
 	%obj.F.mean.norm  = [Fx Fy Fz]*nn(:);
 	obj.F.weight = src.source_weight(a_vert,:);
