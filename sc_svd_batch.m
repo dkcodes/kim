@@ -28,19 +28,18 @@ g.desc = 'test';
 g.list = s_subj;
 
 
-toggle_make_params = 0;
+toggle_make_params = 1;
 if toggle_make_params
 % Important! Make sure to change make_params;
   make_params(g);
 end
 
-info = load(fullfile('mat', g.dirs, 'info.mat'));
+info = load_params(fullfile('in', 'param', g.dirs, 'info.mat'));
 for i_subj = 1:numel(s_subj)
   this.filename = fullfile('mat', info.g.dirs, info.g.list{i_subj});
   p = load_params(this.filename);
   run('sc_analyze_src');
   run('sc_svd');
-  saveas(1, fullfile('out', 'fig', subj_id), 'png')
   svd_stat(i_subj).subj_id = subj_id;
   svd_stat(i_subj).corr_VSVD = corr_VSVD;
   svd_stat(i_subj).corr_VCTF = corr_VCTF;

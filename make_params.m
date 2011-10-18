@@ -2,11 +2,10 @@ function make_params(g)
   g
   group_name = g.dirs;
   list_group = g.list;
-  group_mat_folder = fullfile('.', 'mat', group_name);
-  group_out_folder = fullfile('.', 'out', group_name);
+  group_mat_folder = fullfile('.', 'in', 'param', group_name);
   if isdir(group_mat_folder);
-    disp(sprintf('%s already exists. Overwrite? [y/n]', group_mat_folder));
-    flag_overwrite = input('','s');
+    str_overwrite = sprintf('%s already exists. Overwrite? [y/n] ', group_mat_folder);
+    flag_overwrite = input(str_overwrite,'s');
     if isequal(flag_overwrite, 'y')
       disp(sprintf('### OVER-WRITING existing parameter files ###'));
     else
@@ -14,7 +13,8 @@ function make_params(g)
     end
   else
     system(sprintf('mkdir -p %s', group_mat_folder));
-    system(sprintf('mkdir -p %s', group_out_folder));
+    system(sprintf('mkdir -p %s', fullfile('.', 'out', 'fig', group_name)));
+    system(sprintf('mkdir -p %s', fullfile('.', 'out', 'mat', group_name)));
   end
   for i_params = 1:numel(list_group)
     subj_id = list_group{i_params};
