@@ -23,20 +23,20 @@ s_subj={
 'skeri0078'           
 'skeri0081'           
 };
-g.dirs = 'a001';
-g.desc = 'test';
+g.dirs = 'Hood_001';
+g.desc = sprintf('Comparing with Hood. Do svd as before, but only use 3 electrodes + a reference electrode at the inion. In Hood, the electrodes are placed in sagital (4cm +z) and transverse (4cm =-x) directions. For us, Standford data only has 128 channel electrodes which are 3 and 5 cm apart. We will pick the 5 cm apart electrodes, which should be more lenient for the SVD. The electrode #s at (inion: 81), (-x: 68), (+x: 94), (+z: 75).\n a_chan = [68 75 81 94]');
 g.list = s_subj;
 
 
 toggle_make_params = 1;
 if toggle_make_params
-% Important! Make sure to change make_params;
+% Modify make_params.m to reflect experimental parameters.
   make_params(g);
 end
 
 info = load_params(fullfile('in', 'param', g.dirs, 'info.mat'));
 for i_subj = 1:numel(s_subj)
-  this.filename = fullfile('mat', info.g.dirs, info.g.list{i_subj});
+  this.filename = fullfile ('in', 'param', info.g.dirs, info.g.list{i_subj});
   p = load_params(this.filename);
   run('sc_analyze_src');
   run('sc_svd');
@@ -45,6 +45,31 @@ for i_subj = 1:numel(s_subj)
   svd_stat(i_subj).corr_VCTF = corr_VCTF;
 end
 continue;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 svd_stat_all = reshape([svd_stat.corr_VC],3, numel([svd_stat.corr_VC])/3)';
 tt_svd = t_svd;

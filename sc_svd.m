@@ -56,7 +56,7 @@ text(1.5, 0.4, sprintf('%0.2g      ', corr_VSVD))
 title('SVD');
 
 str_svd = sprintf('svd_%s', subj_id);
-filename_fig_svd = fullfile('.', 'out', 'fig',  g.dirs, str_svd);
+filename_fig_svd = fullfile('.', 'out', g.dirs, 'fig',   str_svd);
 saveas(h_svd, filename_fig_svd);
 continue
 
