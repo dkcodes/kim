@@ -41,7 +41,11 @@ classdef retino_patch < handle
    methods
 		 function make_stl(obj)
 			 rs=obj.session;
-			 system(sprintf('mkdir -p %s', fullfile(rs.dirs.berkeley, 'stl')));
+             if isequal(getenv('os'), 'Windows_NT')
+                system(sprintf('mkdir %s', fullfile(rs.dirs.berkeley, 'stl')));
+             else
+                system(sprintf('mkdir -p %s', fullfile(rs.dirs.berkeley, 'stl')));
+             end
 			 stl_name = fullfile(rs.dirs.berkeley, 'stl', sprintf('%02g_%02g', obj.area, obj.ind));
 			 disp(stl_name);
 			 this.fv.vertices = obj.fv.vertices*1000;

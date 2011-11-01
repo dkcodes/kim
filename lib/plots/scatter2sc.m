@@ -1,7 +1,7 @@
-function [h, a_color] = scatter3sc(x,y,z,s1,min_max)
-h=scatter3(x, y, z, '.');
+function [h, a_color] = scatter2sc(x,y,s1,min_max)
+h=scatter(x, y, '.');
 colorm = jet(1000);
-if nargin <=4
+if nargin <=3
   c1 = s1-min(s1); c1 = c1/max(c1);
   c1 = c1*.5;
   c1 = c1+.25;
@@ -12,7 +12,7 @@ if nargin <=4
     colors(i,:) = colorm(i_color,:);
     a_color(i) = i_color;
   end
-elseif nargin == 5
+elseif nargin == 4
   c_min = min_max(1);
   c_max = min_max(2);
   ref   = linspace(c_min, c_max, 1000);

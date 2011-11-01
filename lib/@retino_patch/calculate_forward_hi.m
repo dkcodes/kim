@@ -8,10 +8,12 @@ function obj = calculate_forward_hi(obj)
 			src = fwd.src(1);
 			nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
 			aa = (rs.a(a_vert)-1)*3;
+			rr = src.rr(a_vert,:);
 		case 'R'
 			src = fwd.src(2);
 			nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
 			aa = (fwd.src(1).nuse + int32(rs.b(a_vert)-1))*3;
+			rr = src.rr(a_vert,:);
 		otherwise
 			error();
 	end
@@ -38,6 +40,7 @@ function obj = calculate_forward_hi(obj)
 	obj.F.weight = src.source_weight(a_vert,:);
 	obj.hi_res_norm.data = nn;
 	obj.hi_res_norm.sum = sum(nn);
+  obj.hi_res_norm.pos = rr;
 	%%      
 	%%%  This part is used to plot the surfaces of the sources
 	%        colors = jet(10);

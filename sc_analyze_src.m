@@ -7,15 +7,15 @@ addpath('./lib');
 add_lib();
 sc_load_fieldnames();
 
-dirs.data      = getenv('ANATOMY_DIR');
-dirs.fs4_data  = fullfile(dirs.data, 'FREESURFER_SUBS');
-dirs.subj      = fullfile(dirs.fs4_data, [subj_id '_fs4']);
-dirs.eeg       = fullfile(dirs.subj, [subj_id '_EEG']);
-dirs.bem       = fullfile(dirs.eeg, 'bem');
-dirs.mne       = fullfile(dirs.eeg, '_MNE_');
-dirs.berkeley  = fullfile(dirs.data, 'Berkeley', subj_id);
-fwd_filename        = fullfile(dirs.mne, [subj_id '-fwd.fif']);
-sph_fwd_filename    = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
+dirs.data        = getenv('ANATOMY_DIR');
+dirs.fs4_data    = fullfile(dirs.data, 'FREESURFER_SUBS');
+dirs.subj        = fullfile(dirs.fs4_data, [subj_id '_fs4']);
+dirs.eeg         = fullfile(dirs.subj, [subj_id '_EEG']);
+dirs.bem         = fullfile(dirs.eeg, 'bem');
+dirs.mne         = fullfile(dirs.eeg, '_MNE_');
+dirs.berkeley    = fullfile(dirs.data, 'Berkeley', subj_id);
+fwd_filename     = fullfile(dirs.mne, [subj_id '-fwd.fif']);
+sph_fwd_filename = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
 
 %% Environment preparations
 if isempty(getappdata(0, 'fwd'))
@@ -30,16 +30,16 @@ if isempty(getappdata(0, 'fwd'))
   setappdata(0, 'fwdtrue',    fwdtrue);
 else
   close all; clc;
-  fwd         = getappdata(0, 'fwd');
-  fwdtrue     = getappdata(0, 'fwdtrue');
+  fwd     = getappdata(0, 'fwd');
+  fwdtrue = getappdata(0, 'fwdtrue');
 end %k
 
-
-n_time       = numel(a_time);
-n_chan       = length(a_chan);
-n_source     = length(a_source);
-n_kern       = numel(a_kern);
-VEPavg       = NaN(n_patch, n_chan, n_time);
+%fwd = sph_fwd;
+n_time   = numel(a_time);
+n_chan   = length(a_chan);
+n_source = length(a_source);
+n_kern   = numel(a_kern);
+VEPavg   = NaN(n_patch, n_chan, n_time);
 
 %% Define Session
 rs = retino_session;
@@ -51,20 +51,20 @@ rs.rois = s_rois;
 rs.design.n_spokes = n_spokes;
 rs.design.n_rings  = n_rings;
 
-rs.a_patch = a_patch;
+rs.a_patch   = a_patch;
 rs.data.mean = VEPavg;
-rs.a_chan = a_chan;
-rs.a_time = a_time;
-rs.fwd = fwd;
-rs.sph_fwd = sph_fwd; 
-rs.a_source = a_source;
-rs.a_kern = a_kern;
-rs.meg_chan = meg_chan;
-rs.eeg_chan = eeg_chan;
+rs.a_chan    = a_chan;
+rs.a_time    = a_time;
+rs.fwd       = fwd;
+rs.sph_fwd   = sph_fwd;
+rs.a_source  = a_source;
+rs.a_kern    = a_kern;
+rs.meg_chan  = meg_chan;
+rs.eeg_chan  = eeg_chan;
 clear -regexp fwd
 
 rs.interpolate_fwd();
-r_pre           = retino_preproc(rs);
+r_pre                = retino_preproc(rs);
 cfg_corner_vert.type = 'patch';
 rs.fill_default_corner_vert(cfg_corner_vert);
 rs.fill_fv();
@@ -77,24 +77,24 @@ rp = rs.retinoPatch;
 %% Make Interactive Figure
 figure(171); close(171);
 clear rplot;
-rplot = retino_plotter;
-cfg.rs = rs;
+rplot       = retino_plotter;
+cfg.rs      = rs;
 cfg.a_patch = [];%rs.a_patch;
-rplot.cfg = cfg;
+rplot.cfg   = cfg;
 rplot.plot_flat;
 
 %% Define Simulation parameters
-% rs.a_kern = [1 2 3 4 5];
-toggle_simdata = 1;
-if toggle_simdata == 1
-  cfg_sim.rs = rs;                    % Define simulation configuration
+% rs.a_kern           = [1 2 3 4 5];
+toggle_simdata        = 1;
+if toggle_simdata     == 1
+  cfg_sim.rs          = rs;                    %  Define simulation configuration
   cfg_sim.noise_level = noise_level;
-  cfg_sim.ref_chan = p.ref_chan; 
-  cfg_sim.v_amplitude = p.v_amplitude; 
-  r_sim = retino_sim(cfg_sim);        % Construct simulation object
-  VEPavg_sim = r_sim.make_sim_data(); % Do Simulation
-  rs.data.mean = VEPavg_sim;          % fill rs.data.mean with simulated data
-  V = rs.sim.true.timefcn;            % fill V with true V
+  cfg_sim.ref_chan    = p.ref_chan;
+  cfg_sim.v_amplitude = p.v_amplitude;
+  r_sim               = retino_sim(cfg_sim);   % Construct simulation object
+  VEPavg_sim          = r_sim.make_sim_data(); % Do Simulation
+  rs.data.mean        = VEPavg_sim;            % fill rs.data.mean with simulated data
+  V                   = rs.sim.true.timefcn;   % fill V with true V
   clear VEP*
 end
 rs.a_source = a_source_accounted;

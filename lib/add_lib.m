@@ -7,11 +7,12 @@ function add_lib()
 			addpath('/raid/MRI/toolbox/vistasoft/trunk/mrAnatomy/');
 			addpath('/raid/MRI/toolbox/vistasoft/trunk/mrLoadRet/Utilities/');
 			addpath('/raid/MRI/toolbox/vistasoft/trunk/mrAnatomy/VolumeUtilities');
-		else
-			addpath('D:\raid\MRI\toolbox\mne\share\matlab');
-			addpath('D:\raid\MRI\toolbox\vistasoft\trunk\mrAnatomy')
-			addpath('D:\raid\MRI\toolbox\vistasoft\trunk\mrAnatomy\VolumeUtilities')
-			addpath('D:\raid\MRI\toolbox\vistasoft\trunk\mrData')
+        else
+            addpath(genpath('E:\raid\MRI\toolbox\vistasoft\trunk\'))
+			addpath('E:\raid\MRI\toolbox\mne\share\matlab');
+			addpath(genpath('E:\raid\MRI\toolbox\vistasoft\trunk\mrAnatomy'))
+			addpath('E:\raid\MRI\toolbox\vistasoft\trunk\mrAnatomy\VolumeUtilities')
+			addpath('E:\raid\MRI\toolbox\vistasoft\trunk\mrData')
 		end
 		setappdata(0, 'pathed', 1);
 	end

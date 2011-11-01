@@ -101,7 +101,7 @@ title('SVD');
 
 subplot(3,2, [2 4 6]);
 vars = diag(s.^2)/sum(diag(s.^2));
-stem(vars(1:5), '*');
+stem(vars(1:3), '*');
 text(1.5, 0.4, sprintf('%0.2g      ', corr_VSVD))
 title('SVD');
 
