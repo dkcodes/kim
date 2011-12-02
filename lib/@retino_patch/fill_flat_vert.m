@@ -10,5 +10,5 @@ function obj = fill_flat_vert(obj)
 	[junk, ind] = intersect(all_vert(:,1), obj.hiResCornerVert);
 	this.pt = all_vert(ind,:);
 	[a1, a2]=nearpoints(all_vert(:,2:4)', this.pt(:,2:4)');
-	obj.flat.hi_res_vert = find(a2<120);
+	obj.flat.hi_res_vert = find(a2<500);
 end %k

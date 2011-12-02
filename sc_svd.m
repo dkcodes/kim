@@ -1,6 +1,4 @@
-close all;
-
-stat(i_subj).subj_id = subj_id;
+results_svd(i_subj).subj_id = subj_id;
 
 temp.data = rs.data.mean;
 n_patch = size(temp.data,1);
@@ -20,19 +18,35 @@ end
 clc
 t_svd{i_subj}= t(:,1:3);
 format compact
+
+
+alternate_components = [2 1 3];
 for i_source = rs.a_source
   tt = corrcoef(t(:,i_source), V{i_source}); 
   corr_VSVD(i_source) = tt(1,2);
+  tt = corrcoef(t(:,alternate_components(i_source)), V{i_source}); 
+  corr_VSVD2(i_source) = tt(1,2);
 end
-stat(i_subj).svd.T_all.corr = corr_VSVD;
-corr_VSVD
+if abs(corr_VSVD(1)) < abs(corr_VSVD2(1))
+  results_svd(i_subj).svd.T_all.corr = round(abs(100*corr_VSVD2))+abs(corr_VSVD);
+else
+  results_svd(i_subj).svd.T_all.corr = corr_VSVD;
+end
+results_svd(i_subj).svd.T_all.corr
 
 for i_source = rs.a_source
   tt = corrcoef(rs.ctf(i_source,:), V{i_source}); 
   corr_VCTF(i_source) = tt(1,2);
 end
-stat(i_subj).true.T_all.corr = corr_VCTF;
+results_svd(i_subj).true.T_all.corr = corr_VCTF;
 corr_VCTF
+
+results_svd(i_subj).true.data.t = rs.sim.true.timefcn;
+results_svd(i_subj).svd.data.u = u(:,1:3);
+results_svd(i_subj).svd.data.s = s(1:3,1:3);
+results_svd(i_subj).svd.data.t = t(:,1:3);
+
+
 
 % Calculate the angles between the F's of different sources.
 % The independence of time functions betwen V1/V2/V3 will
@@ -40,7 +54,6 @@ corr_VCTF
 % topographies (i.e. rp(1,i).F Vs rp(2,i).F vs rp(3,i).F
 
 F_all =[];
-UF_all = [];
 for i_patch = 1:numel(rs.a_patch)
   ai_patch = rs.a_patch(i_patch);
   F = []; UF = [];
@@ -49,34 +62,59 @@ for i_patch = 1:numel(rs.a_patch)
     UF(:,i_source) = u(:,i_source);
   end
   F_all = [F_all; F];
-  UF_all = [UF_all; UF];
+  UF_all = UF;
 
   for i_source = rs.a_source
-    stat(i_subj).true.F(i_patch).sum(i_source) = ...
+    results_svd(i_subj).true.F(ai_patch).sum(i_source) = ...
       F(:, i_source)' * F(:, i_source);
-    stat(i_subj).svd.F(i_patch).sum(i_source) = ...
+    results_svd(i_subj).svd.F(ai_patch).sum(i_source) = ...
       UF(:, i_source)' * UF(:, i_source);
     for j_source = rs.a_source
-      stat(i_subj).true.F(i_patch).angles(i_source, j_source) = ...
+      results_svd(i_subj).true.F(ai_patch).angles(i_source, j_source) = ...
         subspace( F(:, i_source), F(:, j_source) );
-      stat(i_subj).svd.F(i_patch).angles(i_source, j_source) = ...
+      results_svd(i_subj).svd.F(ai_patch).angles(i_source, j_source) = ...
         subspace( UF(:, i_source), UF(:, j_source) );
     end
   end
 end
 for i_source = rs.a_source
-  stat(i_subj).true.F_all.sum = ...
+  results_svd(i_subj).true.F_all.sum = ...
     F_all(:, i_source)' * F_all(:, i_source);
-  stat(i_subj).svd.F_all.sum = ...
+  results_svd(i_subj).svd.F_all.sum = ...
     UF_all(:, i_source)' * UF_all(:, i_source) ;
   for j_source = rs.a_source
-    stat(i_subj).true.F_all.angles(i_source, j_source) = ...
+    results_svd(i_subj).true.F_all.angles(i_source, j_source) = ...
       subspace( F_all(:, i_source), F_all(:, j_source) );
-    stat(i_subj).svd.F_all.angles(i_source, j_source) = ...
+    results_svd(i_subj).svd.F_all.angles(i_source, j_source) = ...
       subspace( UF_all(:, i_source), UF_all(:, j_source) );
   end
 end
+results_svd(i_subj).svd.F_all.data = UF_all;
+results_svd(i_subj).true.F_all.data = F_all;
 
+for i_patch = 1:numel(rs.a_patch)
+  ai_patch = rs.a_patch(i_patch);
+  if max(rs.a_source) > 2
+    temp_angles(i_patch, :) = results_svd(i_subj).true.F(ai_patch).angles([2 3 6]);
+  else
+    temp_angles(i_patch, :) = results_svd(i_subj).true.F(ai_patch).angles([2]);
+  end
+end
+results_svd(i_subj).true.F_all.mean_angles = mean(temp_angles);
+
+
+
+results_svd(i_subj).summary.corr_V_SVD = results_svd(i_subj).svd.T_all.corr;
+if max(rs.a_source) > 2
+  results_svd(i_subj).summary.F_all_ang = rad2deg(results_svd(i_subj).true.F_all.angles([2 3 6]));
+else
+  results_svd(i_subj).summary.F_all_ang = rad2deg(results_svd(i_subj).true.F_all.angles([2]));
+end
+results_svd(i_subj).summary.F_ang_mean = rad2deg(results_svd(i_subj).true.F_all.mean_angles);
+results_svd(i_subj).summary.abs_area = rs.rois.weight.visual_areas;
+results_svd(i_subj).summary.eff_area = rs.rois.weight.effective_visual_areas;
+results_svd(i_subj).summary.corr_V_CTF = corr_VCTF;
+results_svd(i_subj).p = p;
 
 
 h_svd = randi(1e6);
@@ -102,7 +140,7 @@ title('SVD');
 subplot(3,2, [2 4 6]);
 vars = diag(s.^2)/sum(diag(s.^2));
 stem(vars(1:3), '*');
-text(1.5, 0.4, sprintf('%0.2g      ', corr_VSVD))
+text(1.5, 0.4, sprintf('%2.2f      ', results_svd(i_subj).svd.T_all.corr))
 title('SVD');
 
 str_svd = sprintf('svd_%s', subj_id);

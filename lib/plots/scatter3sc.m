@@ -6,7 +6,7 @@ if nargin <=4
   c1 = c1*.5;
   c1 = c1+.25;
   l = linspace(0,1, 1000);
-  for i = 1:size(c1,1)
+  for i = 1:size(c1,1);
     a=c1(i);
     i_color=find(abs(l-a)==min(abs(l-a)));
     colors(i,:) = colorm(i_color,:);

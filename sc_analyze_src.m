@@ -73,7 +73,7 @@ rs.fill_fv();
 tic;
 rs.init_session_patch();
 rp = rs.retinoPatch;
-
+rs.fill_rois_area();
 %% Make Interactive Figure
 figure(171); close(171);
 clear rplot;
@@ -84,17 +84,15 @@ rplot.cfg   = cfg;
 rplot.plot_flat;
 
 %% Define Simulation parameters
-% rs.a_kern           = [1 2 3 4 5];
-toggle_simdata        = 1;
-if toggle_simdata     == 1
-  cfg_sim.rs          = rs;                    %  Define simulation configuration
-  cfg_sim.noise_level = noise_level;
-  cfg_sim.ref_chan    = p.ref_chan;
-  cfg_sim.v_amplitude = p.v_amplitude;
-  r_sim               = retino_sim(cfg_sim);   % Construct simulation object
-  VEPavg_sim          = r_sim.make_sim_data(); % Do Simulation
-  rs.data.mean        = VEPavg_sim;            % fill rs.data.mean with simulated data
-  V                   = rs.sim.true.timefcn;   % fill V with true V
+% rs.a_kern             = [1 2 3 4 5];
+toggle_simdata          = 1;
+if isequal(toggle_simdata, 1)
+  cfg_sim      = p.cfg_sim;
+  cfg_sim.rs   = rs;                    %  Define simulation configuration
+  r_sim        = retino_sim(cfg_sim);   % Construct simulation object
+  VEPavg_sim   = r_sim.make_sim_data(); % Do Simulation
+  rs.data.mean = VEPavg_sim;            % fill rs.data.mean with simulated data
+  V            = rs.sim.true.timefcn;   % fill V with true V
   clear VEP*
 end
 rs.a_source = a_source_accounted;

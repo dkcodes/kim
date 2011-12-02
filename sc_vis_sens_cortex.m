@@ -1,18 +1,10 @@
-figure(randi(1e8))
-s1=subplot(1,3,1); axis vis3d equal;
-s2=subplot(1,3,2); axis vis3d equal;
-s3=subplot(1,3,3); axis vis3d equal;
+figure_seed = randi(1e8);
 
 toggle_show_all_elec = 0;
 toggle_show_per_patch = 1;
 toggle_show_layout = 0;
 subplot_cfg.row = 4
 subplot_cfg.col = numel(rs.a_patch)/subplot_cfg.row;
-
-
-
-
-
 
 
 if toggle_show_layout
@@ -54,17 +46,16 @@ else
       for i_source = 1:numel(rs.a_source)
         ai_source = rs.a_source(i_source);
         trp = rp(ai_source, ai_patch);
-
-        subplot(subplot_cfg.row, subplot_cfg.col, i_subplot); hold on;
+        figure(figure_seed + 1000+ i_source);
+        h_subplot(ai_source, ai_patch) = ...
+                  subplot(subplot_cfg.row, subplot_cfg.col, i_subplot); hold on;
         F = trp.F.mean.norm;
         F_max_abs = max(abs(F));
         % [68 75 81 94]
         if toggle_show_layout
-          if i_source == 2
-            scatter2sc(x(a_chan), y(a_chan), F(a_chan), [-.01 .01]);
-          end
-        else    
-          scatter3sc(x(a_chan), y(a_chan), z(a_chan), F(a_chan), [-.01 .01]);
+          scatter2sc(x(a_chan), y(a_chan), F(a_chan), [-.01 .01]);
+        else   
+          scatter3sc(x(a_chan), y(a_chan), z(a_chan), F(a_chan), [-.05 .05]/(numel(rs.a_patch)/15));
           view([0 0]); axis vis3d equal;
         end
       end
@@ -84,11 +75,10 @@ if toggle_show_per_patch
     ai_patch = rs.a_patch(i_patch); i_subplot = i_subplot + 1;
     for i_source = 1:numel(rs.a_source)
       ai_source = rs.a_source(i_source);
+      
       trp = rp(ai_source, ai_patch);
-      subplot(subplot_cfg.row, subplot_cfg.col, i_subplot); set(gca, 'Visible', 'off');
       pos = trp.hi_res_norm.pos;
-      h(i_source) = plot3(pos(:,1), pos(:,2), pos(:,3), '.', ...
-      'color', trp.faceColor); hold on;
+      
       F = trp.F.mean.norm;
       Fvar(i_source, i_patch) = sqrt(sum(F.^2));
       Fweight(i_source, i_patch) = sum(trp.F.weight);
@@ -101,9 +91,16 @@ if toggle_show_per_patch
         sn{i_source, i_patch}/norm(sn{i_source, i_patch})*Fweight(i_source, i_patch)*1000;
       tsp = sp{i_source, i_patch};
       tsn = sn{i_source, i_patch};
-      quiver3(tsp(1), tsp(2), tsp(3), tsn(1), tsn(2), tsn(3), ...
-              'linewidth', 2, 'color', trp.faceColor);
-      text(0, 0, sprintf('(%g : %g)', ai_source, ai_patch ) )
+      for i_src_fig = 1:3
+        figure(figure_seed + 1000+ i_src_fig);
+        subplot(subplot_cfg.row, subplot_cfg.col, i_subplot); set(gca, 'Visible', 'off');
+        h_patch(ai_source, ai_patch) = plot3(pos(:,1), pos(:,2), pos(:,3), '.', ...
+        'color', trp.faceColor); hold on;
+        h_quiver(ai_source, ai_patch) = quiver3(tsp(1), tsp(2), tsp(3), tsn(1), tsn(2), tsn(3), ...
+        'linewidth', 2, 'color', trp.faceColor);
+        text(0, 0, sprintf('(%g : %g)', ai_source, ai_patch ) )
+        view([0 0]); axis vis3d equal;
+      end
     end
   end
 end

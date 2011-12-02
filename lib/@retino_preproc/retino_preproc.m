@@ -39,7 +39,7 @@ classdef retino_preproc < handle
 			status = obj.get_status_default_corner_vert(obj.rs);
 			if isequal(status.file, 0)
 				figure(171); close(171);
-				rplot = retino_patch_plotter;
+				rplot = retino_plotter;
 				cfg.rs = obj.rs;
 				cfg.aPatch = [];%rs.aPatch;
 				rplot.cfg = cfg;

@@ -9,6 +9,7 @@ classdef retino_sim
     function VEPavg_sim = make_sim_data(obj)
       cfg = obj.cfg;
       rs = cfg.rs;
+      rp = rs.retinoPatch;
       v_amplitude = cfg.v_amplitude;
       if isfield(cfg, 'ref_chan')
         ref_chan = cfg.ref_chan;
@@ -30,9 +31,56 @@ classdef retino_sim
         temp_gausswav = [];
         for i_kern = a_kern
           ai_kern = a_kern(i_kern);
-          source_time_fcn(ai_source, ai_kern, :) = ...
-            gauswavf(lb, ub, n, gauswavf_P(ai_kern, i_source));
-          %          source_time_fcn(ai_source, ai_kern, :) = randn(1, n_time);
+          if isfield(cfg, 'src_time_type')
+            if isequal(cfg.src_time_type, 'rand')
+              source_time_fcn(ai_source, ai_kern, :) = rand(1, n_time);
+            elseif isequal(cfg.src_time_type, 'orth_sin')
+              for i_source = 1:numel(rs.a_source)
+                ai_source = a_source(i_source);
+                time = linspace(0, 1, numel(rs.a_time));
+                source_time_fcn(ai_source, ai_kern, :) = sin(2*pi*ai_source*time);
+              end
+            elseif isequal(cfg.src_time_type, 'justin')
+              if ai_source < 3
+                t_0 = 1;
+                t_fin = 201; 
+                load(fullfile('in', 'just_data.mat'))
+                this.data = just_data.y(ai_source, :);
+                this.data = spline(t_0:t_fin, this.data(t_0:t_fin), ...
+                                   linspace(t_0, t_fin, numel(rs.a_time)));
+                this.data = this.data/norm(this.data);
+                source_time_fcn(ai_source, ai_kern, :) = this.data;
+              else
+                source_time_fcn(ai_source, ai_kern, :) = ...
+                  gauswavf(lb, ub, n, gauswavf_P(ai_kern, i_source));
+                source_time_fcn(ai_source, ai_kern, :) = ...
+                  source_time_fcn(ai_source, ai_kern, :)/norm(squeeze(source_time_fcn(ai_source, ai_kern, :)));
+              end
+            elseif isequal(cfg.src_time_type, 'thom')
+              if ai_source < 3
+                t_0 = 1;
+                t_fin = 201; 
+                load(fullfile('in', 'thom_data.mat'))
+                this.data = thom_data(ai_source, :);
+                this.data = spline(t_0:t_fin, this.data(t_0:t_fin), ...
+                                   linspace(t_0, t_fin, numel(rs.a_time)));
+                this.data = this.data/norm(this.data);
+                source_time_fcn(ai_source, ai_kern, :) = this.data;
+              else
+                source_time_fcn(ai_source, ai_kern, :) = ...
+                  gauswavf(lb, ub, n, gauswavf_P(ai_kern, i_source));
+                source_time_fcn(ai_source, ai_kern, :) = ...
+                  source_time_fcn(ai_source, ai_kern, :)/norm(squeeze(source_time_fcn(ai_source, ai_kern, :)));
+              end
+
+            else
+              source_time_fcn(ai_source, ai_kern, :) = ...
+                gauswavf(lb, ub, n, gauswavf_P(ai_kern, i_source));
+            end
+          else
+              source_time_fcn(ai_source, ai_kern, :) = ...
+                    gauswavf(lb, ub, n, gauswavf_P(ai_kern, i_source));
+          end
         end
       end
       %             noise_level = .01;
@@ -42,16 +90,6 @@ classdef retino_sim
         noise_level = .00;
       end
 
-
-      v_amplitude = [1 1 1];
-      %    V1 = (source_time_fcn(1,:) + .5*source_time_fcn(2,:))/norm(source_time_fcn(1,:) + .5*source_time_fcn(2,:));
-      %    V2 = (source_time_fcn(2,:))/norm(source_time_fcn(2,:));
-      %    V3 = (source_time_fcn(3,:))/norm(source_time_fcn(2,:));
-
-      %    V1 = randn(n_kern,n_time);
-      %    V2 = randn(n_kern,n_time);
-      %    V3 = randn(n_kern,n_time);
-      %
       for i_source = 1:length(a_source)
         ai_source = a_source(i_source);
         V{ai_source} = v_amplitude(ai_source)*reshape(squeeze(source_time_fcn(ai_source, rs.a_kern,:)), n_kern, n_time);
@@ -68,20 +106,34 @@ classdef retino_sim
           for i_source = 1:length(rs.a_source)
             ai_source = rs.a_source(i_source);
             t.rp = rs.retinoPatch(ai_source, ai_patch);
+
             %this.F= t.rp.F.bem_jittered_norm.mean.norm; % If the bem forward solution had angle jitter
+            if isfield(cfg, 'F_type')
+              if isequal(cfg.F_type, 'rand')
+                t.rp.F.mean.norm = rand(numel(rs.a_chan), 1);
+              elseif isequal(cfg.F_type, 'orth')
+                chan_linspace = linspace(0, 1, numel(rs.a_chan));
+                t.rp.F.mean.norm = sin(2*pi*(ai_source+(ai_patch-1)*numel(rs.a_source))*chan_linspace)' * (numel(rs.a_source)-ai_source + 1);
+              end
+            end 
             this.F= t.rp.F.mean.norm;
             % adding contributions from different sources
             VEPavg_sim(ai_patch, all_chan, i_kern,:) = this.F(all_chan)*V{i_source}(i_kern,:) + squeeze(VEPavg_sim(ai_patch, all_chan, i_kern, :));
           end
+          % add noise
           VEPavg_sim(ai_patch, all_chan, i_kern, :) = VEPavg_sim(ai_patch, all_chan, i_kern, :) + randn(size(VEPavg_sim(ai_patch, all_chan, i_kern, :)))*noise_level;
+          % add external source
+%          VEPavg_sim(ai_patch, all_chan, i_kern, :) = VEPavg_sim(ai_patch, all_chan, i_kern, :) + external_signals;
           if isequal(ref_chan, 'average')
             % referencing to average
             V_ref = mean(VEPavg_sim(ai_patch, all_chan, i_kern, :),2);
             VEPavg_sim(ai_patch, all_chan, i_kern, :) = VEPavg_sim(ai_patch, all_chan, i_kern, :) - repmat( V_ref, [1 numel(all_chan) 1 1]);
+            disp('Referencing to : average ref ');
           elseif isequal(class(ref_chan), 'double') && ( ref_chan > min(all_chan) ) && ( ref_chan < max(all_chan) )
             % referencing to specified ref_chan
             V_ref = VEPavg_sim(ai_patch, ref_chan, i_kern, :);
             VEPavg_sim(ai_patch, all_chan, i_kern, :) = VEPavg_sim(ai_patch, all_chan, i_kern, :) - repmat( V_ref, [1 numel(all_chan) 1 1]);
+            disp(['Referencing to : ' num2str(ref_chan)]);
           else
             error('Unknown or illegal EEG reference');
           end

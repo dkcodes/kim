@@ -34,6 +34,8 @@ classdef retino_session < handle
         rh
         
         thisVert
+
+        results
     end
     
     methods

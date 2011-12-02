@@ -44,7 +44,7 @@ classdef retino_patch < handle
              if isequal(getenv('os'), 'Windows_NT')
                 system(sprintf('mkdir %s', fullfile(rs.dirs.berkeley, 'stl')));
              else
-                system(sprintf('mkdir -p %s', fullfile(rs.dirs.berkeley, 'stl')));
+                system(sprintf('mkdir %s', fullfile(rs.dirs.berkeley, 'stl')));
              end
 			 stl_name = fullfile(rs.dirs.berkeley, 'stl', sprintf('%02g_%02g', obj.area, obj.ind));
 			 disp(stl_name);

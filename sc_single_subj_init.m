@@ -1,11 +1,11 @@
 clear
 s_subj={
-%   'skeri0001'
+   'skeri0001'
 %   'skeri0004'
 %   'skeri0009'
 %   'skeri0017'
 %   'skeri0035'
-   'skeri0037'
+%   'skeri0037'
 %   %'skeri0039'
 %   'skeri0044'
 %   'skeri0048'
@@ -18,7 +18,7 @@ s_subj={
 %   'skeri0069'
 %   'skeri0071'
 %   'skeri0072'
-%   'skeri0075
+%   'skeri0075'
 %   'skeri0076'
 %   'skeri0078'
 %   'skeri0081'
@@ -38,7 +38,12 @@ for i_subj = 1:numel(s_subj)
   this.filename = fullfile ('in', 'param', info.g.dirs, info.g.list{i_subj});
   p = load_params(this.filename); %#ok<*NASGU>
   run('sc_analyze_src');
-  run('sc_vis_sens_cortex');
+  weights(i_subj,:,:) = rs.rois.weight.patches;
+  run('sc_svd');
+%  run('sc_vis_sens_cortex');
 end
 this.dirs_out = fullfile('out', info.g.dirs, 'mat', 'stat.mat');
-%save(this.dirs_out, 'stat');
+save(this.dirs_out, 'stat');
+this.dirs_out = fullfile('out', info.g.dirs, 'mat', 'weights.mat');
+save(this.dirs_out, 'weights');
+
