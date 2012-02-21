@@ -1,7 +1,7 @@
 clear
 s_subj={
 %     'DK'
-   'skeri0001'   %1
+%    'skeri0001'   %1
 %    'skeri0004'   %2
 %    'skeri0009'   %3
 %    'skeri0017'   %4
@@ -15,7 +15,7 @@ s_subj={
 %    'skeri0053'   %10
 %    'skeri0054'   %11
 %    'skeri0060'   %12
-%    'skeri0066'   %13
+   'skeri0066'   %13
 %    'skeri0069'   %14
 %    'skeri0071'   %15
 %    'skeri0072'   %16
@@ -25,7 +25,7 @@ s_subj={
 %    'skeri0081'   %20
   };
 g.dirs = 'tmp';
-g.desc = sprintf('patch_def.outer \n 16x6 patches\n results_svd.mat\n 0 norm external source\n justin time function \n');
+g.desc = sprintf('patch_def.outer \n 16x6 patches\n results_svd.mat\n 0.5 norm external source\n');
 g.list = s_subj;
 
 toggle_make_params = 1;
@@ -56,9 +56,9 @@ if numel(rs.a_source > 2)
 end
 results_svd(1).corr_Vens_SVD = corr_Vens_SVD;
 results_svd(1).set_data_average = set_data_average;
-results_svd(1).svd.all.u = u(:, 1:3);
-results_svd(1).svd.all.s = s(:, 1:3);
-results_svd(1).svd.all.t = t(:, 1:3);
+results_svd(1).svd.all.u = u(:, 1:5);
+results_svd(1).svd.all.s = s(:, 1:5);
+results_svd(1).svd.all.t = t(:, 1:5);
 
 this.dirs_out = fullfile('out', info.g.dirs, 'mat', 'results_svd.mat');
 save(this.dirs_out, 'results_svd');

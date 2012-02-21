@@ -1,8 +1,19 @@
 function FS4toDefaultCortexDK
-	% FS4toDefaultCortex(FS4subjid,true)	- uses MNE's ico 5 decimation
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% E:\raid\MRI\toolbox\vistasoft\trunk\mrAnatomy\mrMesh folder
+% MUST CONTAIN MSVCP70.DLL and MSVCR70.DLL!!!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FS4toDefaultCortex(FS4subjid,true)	- uses MNE's ico 5 decimation
 	% FS4toDefaultCortex(FS4subjid,false)  - uses Matlab's reducepatch
 
-	FSsubjid = 'skeri0055_fs4';
+    
+    
+    
+    
+% 	FSsubjid = 'skeri0055_fs4';
+    FSsubjid = 'DK_fs4';
 	useMNEdec = true;
 	opt = 1;
 
@@ -31,7 +42,7 @@ function FS4toDefaultCortexDK
 		[junk,FSsubjid] = fileparts(FSdir);
 	else
 		if ispc
-			FSdir = fullfile('D:\raid\MRI\anatomy\FREESURFER_SUBS\',FSsubjid);
+			FSdir = fullfile('E:\raid\MRI\anatomy\FREESURFER_SUBS\',FSsubjid);
 		else
 			FSdir = fullfile('/raid/MRI/anatomy/FREESURFER_SUBS',FSsubjid);
 		end
@@ -253,7 +264,7 @@ function FS4toDefaultCortexDK
 	msh.nVertexLR = nVertexLR;
 
 	if ispc
-		defDir = ['X:\anatomy\',strtok(FSsubjid,'_'),'\'];
+		defDir = ['e:\anatomy\',strtok(FSsubjid,'_'),'\'];
 	else
 		defDir = ['/raid/MRI/anatomy/',strtok(FSsubjid,'_'),'/'];
 	end

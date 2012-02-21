@@ -5,57 +5,84 @@ classdef retino_preproc < handle
 		flat
 	end
 	methods
-		function obj = retino_preproc(rs)
-			obj.rs = rs;
+		function o = retino_preproc(rs)
+			o.rs = rs;
 			% Check if flattened MRI is available
-			obj.proc_flat_vert();
-			obj.proc_source_weight();
-			obj.proc_default_corner_vert();
-		end
-		function obj = proc_flat_vert(obj)
-			obj.flat.status = obj.get_status_flat(obj.rs);
-			if isequal(obj.flat.status.file, 0)
-				obj.save_flat_vert_from_ascii();
+            if isfield_recursive(rs, 'options', 'fmri', 'toggle') && rs.options.fmri.toggle
+                disp('Processing fMRI from mrVista');
+                if isfield_recursive(rs, 'options', 'fmri', 'reset') && rs.options.fmri.reset
+                    reset_flag = true;
+                else
+                    reset_flag = false;
+                end
+                o.proc_fmri(reset_flag);
+            end
+			o.proc_flat_vert();
+			o.proc_source_weight();
+			o.proc_default_corner_vert();
+            
+        end
+		function o = proc_flat_vert(o)
+			o.flat.status = o.get_status_flat(o.rs);
+			if isequal(o.flat.status.file, 0)
+				o.save_flat_vert_from_ascii();
 			end
-			if isequal(obj.flat.status.var, 0)
-				load(fullfile(obj.rs.dirs.berkeley, 'flatverts.mat'));
-				obj.rs.lh.flat = lh.flat;
-				obj.rs.rh.flat = rh.flat;
+			if isequal(o.flat.status.var, 0)
+				load(fullfile(o.rs.dirs.berkeley, 'flatverts.mat'));
+				o.rs.lh.flat = lh.flat;
+				o.rs.rh.flat = rh.flat;
 			end
 
 		end
-		function obj = proc_source_weight(obj)
-			status = obj.get_status_source_weight(obj.rs);
+		function o = proc_source_weight(o)
+			status = o.get_status_source_weight(o.rs);
 			if isequal(status.file, 0)
-				obj.save_source_weight();
+				o.save_source_weight();
 			end
 			if isequal(status.var, 0)
-				load(fullfile(obj.rs.dirs.berkeley, 'fwd.mat'));
-				obj.rs.fwd = fwd;
+				load(fullfile(o.rs.dirs.berkeley, 'fwd.mat'));
+				o.rs.fwd = fwd;
 				setappdata(0, 'fwd',        fwd);
 			end
 		end
-		function obj = proc_default_corner_vert(obj)
-			status = obj.get_status_default_corner_vert(obj.rs);
+		function o = proc_default_corner_vert(o)
+			status = o.get_status_default_corner_vert(o.rs);
 			if isequal(status.file, 0)
 				figure(171); close(171);
 				rplot = retino_plotter;
-				cfg.rs = obj.rs;
+				cfg.rs = o.rs;
 				cfg.aPatch = [];%rs.aPatch;
 				rplot.cfg = cfg;
-				rplot.plot_flat;
+% 				rplot.plot_flat;
+                rplot.plot_flat_retino;
 				set(171, 'Position', [2   100   704   333])
 				rplot.plot_flat_rois();
 				cfg.n_spokes = 4; cfg.n_rings = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');
-				obj.rs.fill_default_corner_vert(cfg);
+				o.rs.fill_default_corner_vert(cfg);
 			end
 			if isequal(status.var, 0)
-				load(fullfile(obj.rs.dirs.berkeley, 'default_corner_vert.mat'));
-				obj.rs.default_corner_vert = default_corner_vert;
+				load(fullfile(o.rs.dirs.berkeley, 'default_corner_vert.mat'));
+				o.rs.default_corner_vert = default_corner_vert;
 			end
-		end
-
-		function obj = save_flat_vert_from_ascii(obj)
+        end
+        function o = proc_fmri(o, reset_flag)
+			status = o.get_status_fmri(o.rs);
+			if isequal(status.file, 0) || reset_flag
+				fmri = retino_fmri(o.rs);
+                fmri = fmri.load_from_mrv();
+                fmri = fmri.make_retino_data();
+                fmri_data = fmri.save_prop();
+                save(fullfile(o.rs.dirs.berkeley, 'fmri.mat'), 'fmri_data');
+			end
+			if isequal(status.var, 0)
+				load(fullfile(o.rs.dirs.berkeley, 'fmri.mat'));
+                fmri = retino_fmri(o.rs);
+                fmri.load_prop(fmri_data);
+				o.rs.fmri = fmri;
+                o.rs.fmri.make_retino_data();
+			end
+        end
+		function o = save_flat_vert_from_ascii(o)
 			a_hemi = {'L' 'R'};
 			for i_hemi = 1:numel(a_hemi)
 				%          Flatten occipital patch
@@ -66,9 +93,9 @@ classdef retino_preproc < handle
 				%          mris_convert -p lh.occip.flat.patch.3d l.asc
 				%          mris_convert -p rh.occip.flat.small rh.occip.flat.small.asc
 				if isequal(a_hemi{i_hemi}, 'L')
-					[filename, pathname]=uigetfile(fullfile(obj.rs.dirs.berkeley, 'lh*.asc'));
+					[filename, pathname]=uigetfile(fullfile(o.rs.dirs.berkeley, 'lh*.asc'));
 				elseif isequal(a_hemi{i_hemi}, 'R')
-					[filename, pathname]=uigetfile(fullfile(obj.rs.dirs.berkeley, 'rh*.asc'));
+					[filename, pathname]=uigetfile(fullfile(o.rs.dirs.berkeley, 'rh*.asc'));
 				else
 					error('Unknown hemisphere');
 				end
@@ -112,33 +139,40 @@ classdef retino_preproc < handle
 					rh.flat = flat;
 				end
 			end
-			save(fullfile(obj.rs.dirs.berkeley, 'flatverts.mat'), 'lh', 'rh');
-			obj.rs.lh.flat = lh.flat;
-			obj.rs.rh.flat = rh.flat;
+			save(fullfile(o.rs.dirs.berkeley, 'flatverts.mat'), 'lh', 'rh');
+			o.rs.lh.flat = lh.flat;
+			o.rs.rh.flat = rh.flat;
 		end
-		function obj = save_source_weight(obj)
-			obj.rs.fill_source_weight();
-			fwd = obj.rs.fwd;
-			save(fullfile(obj.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
-		end
-		function obj = save_default_corner_vert(obj)
-			obj.rs.fill_source_weight();
-			fwd = obj.rs.fwd;
-			save(fullfile(obj.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
-		end
+		function o = save_source_weight(o)
+			o.rs.fill_source_weight();
+			fwd = o.rs.fwd;
+			save(fullfile(o.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
+        end
+%{      
+		function o = save_default_corner_vert(o)
+			o.rs.fill_source_weight();
+			fwd = o.rs.fwd;
+			save(fullfile(o.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
+        end
+%}
 	end
 	methods (Static)
 		function status = get_status_flat(rs)
-			status.var = ~(isempty(rs.lh) || ~isempty(rs.rh) );
+			status.var = ~isempty(rs.lh) && ~isempty(rs.rh) ;
 			status.file = exist(fullfile(rs.dirs.berkeley, 'flatverts.mat'), 'file');
 		end
 		function status = get_status_source_weight(rs)
-			status.var = isfield(rs.fwd.src, 'source_weight');
+% 			status.var = isfield(rs.fwd.src, 'source_weight');
+            status.var = isfield_recursive(rs, 'source_weight') && ~isempty(rs.source_weight);
 			status.file = exist(fullfile(rs.dirs.berkeley, 'fwd.mat'), 'file');
 		end
 		function status = get_status_default_corner_vert(rs)
-			status.var = isfield(rs, 'default_corner_vert');
+			status.var = isfield_recursive(rs, 'default_corner_vert') && ~isempty(rs.default_corner_vert);
 			status.file = exist(fullfile(rs.dirs.berkeley, 'default_corner_vert.mat'), 'file');
+        end
+        function status = get_status_fmri(rs)
+			status.var = isfield_recursive(rs, 'fmri') && ~isempty(rs.fmri);
+			status.file = exist(fullfile(rs.dirs.berkeley, 'fmri.mat'), 'file');
 		end
 	end
 end

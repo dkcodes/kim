@@ -14,8 +14,10 @@ for i_patch = 1:numel(rs.a_patch)
     data = [data; rs.concat_V_kern(this.rp)];
   end
 end
-[u,s,t] = svd(data);
 clc
+tic
+[u,s,t] = svd(data);
+toc
 t_svd{i_subj}= t(:,1:3);
 format compact
 
@@ -46,7 +48,13 @@ results_svd(i_subj).svd.data.u = u(:,1:3);
 results_svd(i_subj).svd.data.s = s(1:3,1:3);
 results_svd(i_subj).svd.data.t = t(:,1:3);
 
-
+for i_src = rs.a_source
+  for i_patch = 1:numel(rs.a_patch)
+    ai_patch = rs.a_patch(i_patch);
+    results_svd(i_subj).true.data.patch{i_src, i_patch} = rp(i_src, ai_patch).timefcn;
+    results_svd(i_subj).true.T.corr.patch(i_src, i_patch) = corr(rs.sim.true.timefcn{i_src}', rp(i_src, ai_patch).timefcn');
+  end
+end
 
 % Calculate the angles between the F's of different sources.
 % The independence of time functions betwen V1/V2/V3 will
@@ -67,6 +75,7 @@ for i_patch = 1:numel(rs.a_patch)
   for i_source = rs.a_source
     results_svd(i_subj).true.F(ai_patch).sum(i_source) = ...
       F(:, i_source)' * F(:, i_source);
+    results_svd(i_subj).true.Fweight(i_source, ai_patch).weight = rp(i_source, ai_patch).F.weight;
     results_svd(i_subj).svd.F(ai_patch).sum(i_source) = ...
       UF(:, i_source)' * UF(:, i_source);
     for j_source = rs.a_source

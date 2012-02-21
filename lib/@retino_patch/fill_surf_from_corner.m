@@ -22,18 +22,21 @@ function obj = fill_surf_from_corner(obj)
   switch obj.hemi
   case 'L'
       src = fwd.src(1);
-      nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
+      nn_w = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
+      nn = src.nn(a_vert,:);
       rr = src.rr(a_vert,:);
     case 'R'
       src = fwd.src(2);
-      nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
+      nn_w = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
+      nn = src.nn(a_vert,:);
       rr = src.rr(a_vert,:);
     otherwise
       error();
   end
-  obj.hi_res_norm.data = nn;
-  obj.hi_res_norm.sum = sum(nn);
+  obj.hi_res_norm.data = nn_w;
+  obj.hi_res_norm.sum = sum(nn_w);
   obj.hi_res_norm.pos = rr;
+  obj.hi_res_norm.data_wo_weight = nn;
   obj.reject_bad_vert();
 
 

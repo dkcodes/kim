@@ -1,13 +1,11 @@
 close all;
-
 % clearvars -regexp .* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
-
 try, rmappdata(0, 'fwd'); end
-addpath('./lib');
-add_lib();
+addpath('./lib'); add_lib();
 sc_load_fieldnames();
 
 dirs.data        = getenv('ANATOMY_DIR');
+dirs.data        = 'E:\raid\MRI\anatomy';
 dirs.fs4_data    = fullfile(dirs.data, 'FREESURFER_SUBS');
 dirs.subj        = fullfile(dirs.fs4_data, [subj_id '_fs4']);
 dirs.eeg         = fullfile(dirs.subj, [subj_id '_EEG']);
@@ -51,16 +49,17 @@ rs.rois = s_rois;
 rs.design.n_spokes = n_spokes;
 rs.design.n_rings  = n_rings;
 
-rs.a_patch   = a_patch;
-rs.data.mean = VEPavg;
-rs.a_chan    = a_chan;
-rs.a_time    = a_time;
-rs.fwd       = fwd;
-rs.sph_fwd   = sph_fwd;
-rs.a_source  = a_source;
-rs.a_kern    = a_kern;
-rs.meg_chan  = meg_chan;
-rs.eeg_chan  = eeg_chan;
+rs.a_patch      = a_patch;
+rs.data.mean    = VEPavg;
+rs.a_chan       = a_chan;
+rs.a_time       = a_time;
+rs.fwd          = fwd;
+rs.sph_fwd      = sph_fwd;
+rs.a_source     = a_source;
+rs.a_kern       = a_kern;
+rs.meg_chan     = meg_chan;
+rs.eeg_chan     = eeg_chan;
+rs.options      = options;
 clear -regexp fwd
 
 rs.interpolate_fwd();
@@ -105,125 +104,7 @@ rs.fill_Femp(rs.a_patch, 'meg');
 rs.fill_session_patch_timefcn_emp;
 continue;
 disp('11111111111111111111111111111111111111111111111');
-
-
 rs.sim.i_sub = i_sub;
 rplot.plot_flat_rois();
 stat(i_sub, :) = rs.sim.patch_stat;
-
-
-%c_pair = {[1 1], [2 2], [3 3], [1 2], [1 3], [2 3]};
-%all_F = [];
-%for ai_patch = a_patch
-%all_F = [all_F [rp(1, ai_patch).F.mean.norm'; rp(2, ai_patch).F.mean.norm'; rp(3, ai_patch).F.mean.norm']]; 
-%end
-%for i_pair = 1:numel(c_pair)
-%ci_pair = c_pair{i_pair};
-%dot_prod_1(i_sub, i_pair) = sum(all_F(ci_pair(1),:) .* all_F(ci_pair(2),:));
-%end
-
-
 return
-
-for ai_patch = a_patch
-  %roi_area(i_sub, ai_source) = 0;
-  dot_prod_2(ai_patch, 1) = 0;
-  for i_pair = 1:numel(c_pair)
-    ci_pair = c_pair{i_pair};
-    dot_prod_2(ai_patch, i_pair) = ...
-      sum(rp(ci_pair(1), ai_patch).F.mean.norm .* rp(ci_pair(2), ai_patch).F.mean.norm);
-    %roi_area(i_sub, ai_source) = roi_area(i_sub, ai_source) + sum(t.rp.F.weight);
-  end
-end
-
-
-
-return
-
-
-
-
-for i_patch = 1:length(rs.a_patch)
-  ai_patch = rs.a_patch(i_patch);
-  for i_source = 1:length(rs.a_source)
-    ai_source = rs.a_source(i_source);
-    t.rp = rs.retinoPatch(ai_source, ai_patch);
-    t.rp.F.com = t.rp.F.mean.norm; %For common condition
-  end
-end
-
-%% Show Correlation Plots
-
-figure(1); clf(1);
-subplot(1,5,1:2); hold on;
-colors = jet(length(a_patch));
-for i_patch = 1:length(rs.a_patch) 
-  ai_patch = rs.a_patch(i_patch);
-  for i_source = 1:length(rs.a_source)
-    ai_source = rs.a_source(i_source);
-    t.rp = rs.retinoPatch(ai_source, ai_patch);
-
-    M = max(t.rp.timefcn);
-    m = min(t.rp.timefcn);
-    plot((t.rp.timefcn-m)/(M-m)+t.rp.ind*.1+ai_source*4, 'o-', 'color', t.rp.faceColor);
-
-    M = max(t.rp.timefcn_emp);
-    m = min(t.rp.timefcn_emp);
-    plot((t.rp.timefcn_emp-m)/(M-m)+2+t.rp.ind*.1+ai_source*4, '*-', 'color', t.rp.faceColor);
-  end
-end
-
-for i_patch = 1:length(rs.a_patch)
-  ai_patch = rs.a_patch(i_patch);
-  for i_source = 1:length(rs.a_source)
-    ai_source = rs.a_source(i_source);
-    t.rp = rs.retinoPatch(ai_source, ai_patch);
-    tt = corrcoef(reshape(V{ai_source}(1:n_kern,:)',1,n_kern*n_time), rp(ai_source, ai_patch).timefcn_emp);
-    t.rp.sim.cor.emp = tt(1,2); 
-    tt = corrcoef(reshape(V{ai_source}(1:n_kern,:)',1,n_kern*n_time), rp(ai_source, ai_patch).timefcn);
-    t.rp.sim.cor.bem = tt(1,2);
-  end
-end
-
-for i_source = 1:length(rs.a_source)
-  ai_source = rs.a_source(i_source);
-  subplot(1,5,2+ai_source);
-  for i_patch = 1:length(rs.a_patch)
-    ai_patch = rs.a_patch(i_patch);
-    t.rp = rs.retinoPatch(ai_source, ai_patch);
-    plot(ai_patch,t.rp.sim.cor.emp, '*', 'color', t.rp.faceColor); hold on;
-    plot(ai_patch,t.rp.sim.cor.bem, 'o', 'color', t.rp.faceColor);
-  end
-  ylim([-1 1]);
-  try
-    xlim([1 numel(a_patch)]);
-  end
-end
-
-set(171, 'Position', [10   100   1000   500])
-set(171, 'Position', [-1000   519-32   921   485-32]);
-set(gcf, 'Position', [-1000    32-32   921   403]);
-return
-%%
-set(171, 'Position', [10   100   1600   900])
-flatmap_str = sprintf('./pic/flatmap/flat_%s_%s', 'patch', subj_id);
-set(171,'PaperUnits','inches','PaperPosition',[0 0 20 10])
-saveas(171, flatmap_str, 'png');
-
-set(171, 'Position', [10   100   1600   900])    
-rplot.plot_flat_rois(171);
-flatmap_str = sprintf('./pic/flatmap/flat_%s_%s', 'patch+roi', subj_id);
-set(171,'PaperUnits','inches','PaperPosition',[0 0 20 10])
-saveas(171, flatmap_str, 'png');
-
-rplot.plot_flat_rois(172);
-set(172, 'Position', [10   100   1600   900])
-flatmap_str = sprintf('./pic/flatmap/flat_%s_%s', 'roi', subj_id);
-set(172,'PaperUnits','inches','PaperPosition',[0 0 20 10])
-saveas(172, flatmap_str, 'png');
-% run('script_jitter_a');
-% run('script_jitter_b');
-% run('script_jitter_c');
-%%
-%options.outputDir = fullfile('html', sprintf('%gx%g_%g_src%g.html', rs.design.n_spokes, rs.design.n_rings, max(rs.a_patch), 3));
-%publish('script_jitter_c.m', options)

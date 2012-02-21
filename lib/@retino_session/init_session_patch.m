@@ -33,6 +33,22 @@ function init_session_patch(obj)
 		end
 		fprintf(' ::: %0.1g sec \n', toc);
 	end
+
+        % temporary: create external parietal source
+        a=get_vert_from_asc(fullfile(obj.dirs.berkeley, 'lh.par.asc')); a = a(:,1);
+        b=get_vert_from_asc(fullfile(obj.dirs.berkeley, 'rh.par.asc')); b = b(:,1);
+        e_rp(1) = retino_patch;
+        e_rp(1).session = obj;
+        e_rp(1).hemi = 'L';
+        e_rp(1).hiResVert = a;
+        e_rp(1).calculate_forward_hi();
+        e_rp(2) = retino_patch;
+        e_rp(2).session = obj;
+        e_rp(2).hemi = 'R';
+        e_rp(2).hiResVert = b;
+        e_rp(2).calculate_forward_hi();
+        obj.external_patch = e_rp;
+
 	obj.retinoPatch = rp;
 	obj.fill_pt();
 end

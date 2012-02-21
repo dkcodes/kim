@@ -3,9 +3,8 @@ figure_seed = randi(1e8);
 toggle_show_all_elec = 0;
 toggle_show_per_patch = 1;
 toggle_show_layout = 0;
-subplot_cfg.row = 4
+subplot_cfg.row = 4;
 subplot_cfg.col = numel(rs.a_patch)/subplot_cfg.row;
-
 
 if toggle_show_layout
   layout_filename = fullfile(rs.dirs.mne, 'Axx_c001.layout')

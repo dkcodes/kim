@@ -34,6 +34,14 @@ function obj = calculate_forward_hi_jitter_norm(obj)
 	Fx=fwd.sol.data(a_chan,1+aa);
 	Fy=fwd.sol.data(a_chan,2+aa);
 	Fz=fwd.sol.data(a_chan,3+aa);
+
+        % temporary: referencing to electrode 75
+        Fx = Fx - repmat(Fx(75,:), size(Fx, 1), 1 );
+        Fy = Fy - repmat(Fy(75,:), size(Fy, 1), 1 );
+        Fz = Fz - repmat(Fz(75,:), size(Fz, 1), 1 );
+
+
+
 	obj.F.bem_jittered_norm.mean.norm(a_chan,:)  = [Fx Fy Fz]*nn(:);
 	%obj.F.bem_jittered_norm.mean.norm  = [Fx Fy Fz]*nn(:);
 end %k

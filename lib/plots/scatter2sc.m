@@ -1,12 +1,13 @@
 function [h, a_color] = scatter2sc(x,y,s1,min_max)
 h=scatter(x, y, '.');
-colorm = jet(1000);
+colorm = flipud(gray(1000));
+colorm = flipud(jet(1000));
 if nargin <=3
   c1 = s1-min(s1); c1 = c1/max(c1);
   c1 = c1*.5;
   c1 = c1+.25;
   l = linspace(0,1, 1000);
-  for i = 1:size(c1,1)
+  for i = 1:numel(c1)
     a=c1(i);
     i_color=find(abs(l-a)==min(abs(l-a)));
     colors(i,:) = colorm(i_color,:);
@@ -28,5 +29,6 @@ elseif nargin == 4
   a_color(i) = min(i_color);
   end
 end
-
-set(h, 'LineWidth',  1, 'CData', colors); axis equal vis3d;
+set(h, 'LineWidth',  1, 'CData', colors); 
+% set(h, 'sizedata', s1*20);
+% axis equal vis3d;

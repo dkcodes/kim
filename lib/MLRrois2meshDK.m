@@ -1,15 +1,18 @@
-function iMap = MLRrois2meshDK(cfg)
+function [iMap, cdata] = MLRrois2meshDK(cfg)
 	global globalVar
+    cdata = [];
 
 	cortexType  = cfg.cortexType;
 	% empty for defaultCortex.mat
 	% 'hires' for hiresolution cortex source space.
+    cortexType = 'hires';
 	vAnatFile   = cfg.vAnatFile;
 	mrmFile     = cfg.mrmFile;
 	thresh      = cfg.thresh;
 	fWhite2Pial = cfg.fWhite2Pial;
 	ROIfiles    = cfg.ROIfiles;
 	roiDir      = cfg.roiDir;
+  
 	if ~isfield(cfg,'plot'), cfg.plot    = false; end
 	% add in layer checks?
 
@@ -61,10 +64,11 @@ function iMap = MLRrois2meshDK(cfg)
 	% fprintf('cortex file = %s %s\n',mrmPath,mrmFile);
 	% fprintf('loading ROIs from %s\n\n',roiDir);
 	if ~isfield(globalVar, 'cortex')
-		globalVar.cortex = load(fullfile(mrmPath,mrmFile));
+% 		globalVar.cortex = load(fullfile(mrmPath,mrmFile));
 		%     globalVar.meshHash = hashOld(globalVar.cortex.msh.data.vertices(:),'md5');
 	end
-	cortex = globalVar.cortex;
+% 	cortex = globalVar.cortex;
+    cortex = load(fullfile(mrmPath,mrmFile));
 	% meshHash = globalVar.meshHash;
 
 
@@ -91,14 +95,24 @@ function iMap = MLRrois2meshDK(cfg)
 	for iROI = 1:nROI
 		% load ROI file, Vistasoft has IPR coords, PIR nodes
 		roiCoords = load(fullfile(roiDir,ROIfiles{iROI}));		% in voxels, multiply my mmPerVox
+%         roiCoords = load(fullfile(roiDir,'V2V-L.mat'));		% in voxels, multiply my mmPerVox
 		roiCoords.ROI.coords = double(roiCoords.ROI.coords);
 		for iDim = 1:3
 			roiCoords.ROI.coords(iDim,:) = mmPerPix(iDim) * roiCoords.ROI.coords(iDim,:);
 		end
 		roiCoords.ROI.coords(:) = roiCoords.ROI.coords([2 1 3],:);
 		[junk,ROIname] = fileparts(ROIfiles{iROI});
-
-		% find nearest ROI vertex to each cortex vertex
+%         xind = find(cortex.msh.data.vertices(1,:)>150);
+%         v = cortex.msh.data.vertices(:,xind);
+%         if isempty(findobj(gca, 'type', 'patch'))
+%             patch('faces', cortex.msh.data.triangles', 'vertices', cortex.msh.data.vertices');
+%         end
+%         axis vis3d equal;        hold on;
+%         plot3(roiCoords.ROI.coords(1,:), roiCoords.ROI.coords(2,:), roiCoords.ROI.coords(3,:), '.', 'color', rand(1,3)); 
+%         plot3(cortex.msh.data.vertices(1,iMap), cortex.msh.data.vertices(2,iMap), cortex.msh.data.vertices(3,iMap), '.g'); axis vis3d;
+        
+        %%
+        % find nearest ROI vertex to each cortex vertex
 		% include cortex vertex if distance is within threshold
 
 		exploded.ROIname = explode('-', ROIname);
