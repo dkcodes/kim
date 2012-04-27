@@ -3,10 +3,10 @@ classdef retino_plotter < handle
         cfg
     end %k
     methods
-        function obj=retino_plotter()
+        function o=retino_plotter()
         end %k
-        function update(obj)
-            rs = obj.cfg.rs;
+        function update(o)
+            rs = o.cfg.rs;
             for i_patch = 1:numel(rs.a_patch)
                 ai_patch = rs.a_patch(i_patch);
                 for i_source = 1:length(rs.a_source)
@@ -17,8 +17,8 @@ classdef retino_plotter < handle
                 end
             end
         end %k
-        function plot_flat(obj)
-            rs = obj.cfg.rs;
+        function plot_flat(o)
+            rs = o.cfg.rs;
             rp = rs.retinoPatch;
             h.fig = 171;
             figure(h.fig); clf(h.fig);
@@ -26,9 +26,11 @@ classdef retino_plotter < handle
             subplot(1,2,1); hold on; axis equal square;
             %          patch('Faces', rs.lh.flat.tris, 'Vertices', rs.lh.flat.vert_full(:,2:4), 'EdgeColor', [.65 .65 .65], 'FaceColor', 'w');
             i_not_nan = ~isnan(rs.lh.flat.vert_full(:,2));
+%             rs.lh.h.nodes = plot3(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), 10*ones(size(rs.lh.flat.vert_full(i_not_nan,3))), '.');
             rs.lh.h.nodes = plot(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), '.');
             set(rs.lh.h.nodes, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
             subplot(1,2,2); hold on; axis equal square;
+%             rs.rh.h.nodes = plot3(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), -10*ones(size(rs.rh.flat.vert_full(:,3))), '.');
             rs.rh.h.nodes = plot(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), '.');
             set(rs.rh.h.nodes, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
             %          patch('Faces', rs.rh.flat.tris, 'Vertices', rs.rh.flat.vert_full(:,2:4), 'EdgeColor', [.65 .65 .65], 'FaceColor', 'w');
@@ -62,11 +64,13 @@ classdef retino_plotter < handle
             set(h.fig,'WindowButtonDownFcn',{@mouseDownFcn});
             set(h.fig,'WindowKeyPressFcn',{@keyDownFcn});
         end %k
-        function plot_flat_retino(obj, i_scan, range) 
-            
+        function plot_flat_retino(o, i_scan, range) 
+            if ~o.cfg.rs.options.fmri.toggle
+                return;
+            end
             data_type = 'ph';
             
-            rs = obj.cfg.rs;
+            rs = o.cfg.rs;
             h.fig = 171;
             figure(h.fig);
             colormap(copper(100))
@@ -89,9 +93,17 @@ classdef retino_plotter < handle
                     w = rs.fmri.(hemi).(data_type);
                 end
                 if exist('range', 'var')
-                    i_range = w>range(1) & w<range(2);
+                    if size(range,1) > 1
+                        a_range = zeros(size(w));
+                        for i_range = 1:size(range,1)
+                            a_range = (a_range + (w>range(i_range, 1) & w<range(i_range, 2)))~=0;
+                        end
+                        
+                    else
+                        a_range = w>range(1) & w<range(2);
+                    end
                     w = ones(size(w));
-                    w(~i_range)=0;
+                    w(~a_range)=0;
                 end
 
                 x = vert(i_not_nan,2);
@@ -102,12 +114,15 @@ classdef retino_plotter < handle
                 Vq = F(Xq, Yq);
 %                 Vq = imfilter(Vq, fspecial('gaussian', 3, 1));
                 try, delete(rs.h.retino.(hemi)); end;
-                [junk, rs.h.retino.(hemi)]=contour(Xq, Yq, Vq, 'fill', 'on');
+                [junk, rs.h.retino.(hemi)]=contour(Xq, Yq, Vq, 'fill', 'on', 'linestyle', 'none');
                 set(rs.h.retino.(hemi), 'LevelStep', 0.2)
+                alphable = findobj(rs.h.retino.(hemi), '-property', 'FaceAlpha');
+                set(alphable, 'facealpha', 0.4)
             end
+            rs.h.retino.all = [rs.h.retino.lh rs.h.retino.rh];
         end %k
-        function plot_flat_rois(obj, h_fig)
-            rs = obj.cfg.rs;
+        function plot_flat_rois(o, h_fig)
+            rs = o.cfg.rs;
             src = rs.fwd.src;
             rois = rs.rois.name;
             colors = jet(numel(rois));
@@ -116,7 +131,6 @@ classdef retino_plotter < handle
                 h.fig = h_fig;
             end
             try
-                hAx = findobj(h.fig,'type','axes');
                 figure(h.fig);
                 subplot(1,2,1); hold on; subplot(1,2,2); hold on;
                 hAx = findobj(h.fig,'type','axes');
@@ -174,7 +188,7 @@ classdef retino_plotter < handle
                     rs.sim.patch_stat = patch_stat;
                     
                     
-                    [a,b]=ismember(rs.sph_fwd.src(i_src).vertno, rs.fwd.src(i_src).vertno);
+                    [~,b]=ismember(rs.sph_fwd.src(i_src).vertno, rs.fwd.src(i_src).vertno);
                     sph.ROI.meshIndices = b(ROI.meshIndices - offset);
                     sph.ROI.meshIndices = sph.ROI.meshIndices(sph.ROI.meshIndices~=0);
                     aMap = rs.fwd.src(i_src).vertno(sph.ROI.meshIndices);
@@ -196,7 +210,10 @@ classdef retino_plotter < handle
                         roi_name = regexprep(rs.rois.name{i_roi}, '-', '_');
                         if ~tog_display_perimeter
                             h.rois.(roi_name).p = plot(x,y,'.','color', colors(i_roi,:));
-                            
+                            if ~isfield_recursive(h, 'rois', 'all', 'p')
+                                h.rois.all.p = [];
+                            end
+                            h.rois.all.p = [h.rois.all.p h.rois.(roi_name).p];
                             if isequal(rs.rois.name{i_roi}(2), '3')
                                 h.rois.(roi_name).text = text(mean(x), min(v(:,3)), rs.rois.name{i_roi}(end-2), 'fontsize', 30, 'color', 'k');
                             end
@@ -219,6 +236,10 @@ classdef retino_plotter < handle
                         y = v(aMap,3);
                         if ~tog_display_perimeter
                             h.rois.(roi_name).p = plot(x,y,'.','color', colors(i_roi,:));
+                            if ~isfield_recursive(h, 'rois', 'all', 'p')
+                                h.rois.all.p = [];
+                            end
+                            h.rois.all.p = [h.rois.all.p h.rois.(roi_name).p];
                             if isequal(rs.rois.name{i_roi}(2), '3')
                                 h.rois.(roi_name).text = text(mean(x), min(v(:,3)), rs.rois.name{i_roi}(end-2), 'fontsize', 30, 'color', 'k');
                             end
@@ -240,10 +261,10 @@ classdef retino_plotter < handle
             end
             setappdata(h.fig, 'rs', rs);
         end %k
-        function plot_3D(obj)
+        function plot_3D(o)
             figure(11223344);
-            rs = obj.cfg.rs;
-            a_patch = obj.cfg.a_patch;
+            rs = o.cfg.rs;
+            a_patch = o.cfg.a_patch;
             
             for i_patch = 1:length(a_patch)
                 ai_patch = a_patch(i_patch);
@@ -251,7 +272,7 @@ classdef retino_plotter < handle
                     ai_source = rs.a_source(i_source);
                     t.rp = rs.retinoPatch(ai_source, ai_patch);
                     if t.rp.hemi == 'L'
-                        if obj.cfg.n_subplot == 1
+                        if o.cfg.n_subplot == 1
                             subplot(1,1,1); hold on;
                         else
                             subplot(1,2,2); hold on;
@@ -260,7 +281,7 @@ classdef retino_plotter < handle
                         src = rs.fwd.src(1);
                     else
                         
-                        if obj.cfg.n_subplot == 1
+                        if o.cfg.n_subplot == 1
                             subplot(1,1,1); hold on;
                         else
                             subplot(1,2,2); hold on;
@@ -311,26 +332,26 @@ classdef retino_plotter < handle
             %           set(h.light,'style','local','color',[.5 .5 .5],'visible','on')
             %           axis vis3d
         end %k
-        function p2(obj, rs)
+        function p2(o, rs)
             h.fig = 2000;
             figure(h.fig); clf(h.fig);
             cfg.a_patch = 'all';
             rp = rs.retinoPatch;
-            for iPatch = 1:length(obj.a_patch)
+            for iPatch = 1:length(o.a_patch)
                 iSource = 1;
                 h.timefcn.subplot(iPatch)=subplot(8,4,iPatch);
-                aiPatch = rs.find_patch_source_index(obj.a_patch(iPatch), iSource);
+                aiPatch = rs.find_patch_source_index(o.a_patch(iPatch), iSource);
                 this.plot = rp(aiPatch).timefcn.source;
                 rp(aiPatch).h.timefcn.source(1)=plot(this.plot); hold on;
                 rp(aiPatch).h.timefcn.svd(1)=plot(rs.timefcn.svd.t(:,1)','r-', 'LineWidth', 1);
-                title(sprintf('Patch: %g', obj.a_patch(iPatch)));
+                title(sprintf('Patch: %g', o.a_patch(iPatch)));
                 set(gca, 'XTick', [0 25 50 75 100 120], 'XTickLabel', {'0' '50' '100' '150' '200' '240'}); grid on;
                 ylim([-.11 .11])
             end
         end %k
-        function plot(obj, rs)
+        function plot(o, rs)
             [junk, x, y, junk, junk, junk] = textread('./MONTREAL.lay', '%d %f %f %f %f %s');
-            switch obj.dataType
+            switch o.dataType
                 case 'meg'
                     a_chan = rs.meg_chan;
                 case 'eeg'
@@ -338,7 +359,7 @@ classdef retino_plotter < handle
                 otherwise
                     error();
             end
-            switch obj.type
+            switch o.type
                 case 'D2-Dartboard'
                     maxV = 0;
                     minV = 0;
@@ -358,10 +379,10 @@ classdef retino_plotter < handle
                         radius  = radii(ceil(this.rp.ind/8));
                         [xmod,ymod]=pol2cart(theta,radius);
                         subplot('Position', [xmod+.5 ymod+.5 .07 .07]);
-                        if isequal(obj.dataType, 'eeg'),    dotSize = 20;
+                        if isequal(o.dataType, 'eeg'),    dotSize = 20;
                         else                                dotSize = 15;
                         end
-                        switch obj.ori
+                        switch o.ori
                             case 'x', V = this.rp.F.mean.x(a_chan,:);
                             case' y', V = this.rp.F.mean.y(a_chan,:);
                             case 'z', V = this.rp.F.mean.z(a_chan,:);
@@ -383,10 +404,10 @@ classdef retino_plotter < handle
                         aiPatch = iPatch;
                         this.rp = rs.retinoPatch(aiPatch);
                         if this.rp.area == 1
-                            if isequal(obj.dataType, 'eeg'),    dotSize = 20;
+                            if isequal(o.dataType, 'eeg'),    dotSize = 20;
                             else                                dotSize = 15;
                             end
-                            switch obj.ori
+                            switch o.ori
                                 case 'x', V = this.rp.F.mean.x(a_chan,:);
                                 case' y', V = this.rp.F.mean.y(a_chan,:);
                                 case 'z', V = this.rp.F.mean.z(a_chan,:);
@@ -421,20 +442,20 @@ classdef retino_plotter < handle
                     for iPatch = 1:length(rs.a_patch);
                         aiPatch = rs.a_patch(iPatch);
                         this.rp = rs.retinoPatch(aiPatch);
-                        if isequal(obj.dataType, 'eeg'),    dotSize = 15;
+                        if isequal(o.dataType, 'eeg'),    dotSize = 15;
                         else                                dotSize = 10;
                         end
-                        switch obj.individual
+                        switch o.individual
                             case true
-                                for iVert = 1:length(obj(aiPatch).loResVert)
-                                    this.vert = obj(aiPatch).loResVert(iVert);
+                                for iVert = 1:length(o(aiPatch).loResVert)
+                                    this.vert = o(aiPatch).loResVert(iVert);
                                     this.offset = nodes(nodes==this.vert,2:4);
-                                    switch obj.ori
-                                        case 'x', V = this.obj.F.individual.x(a_chan,iVert);
-                                        case 'y', V = this.obj.F.individual.y(a_chan,iVert);
-                                        case 'z', V = this.obj.F.individual.z(a_chan,iVert);
+                                    switch o.ori
+                                        case 'x', V = this.o.F.individual.x(a_chan,iVert);
+                                        case 'y', V = this.o.F.individual.y(a_chan,iVert);
+                                        case 'z', V = this.o.F.individual.z(a_chan,iVert);
                                         otherwise
-                                            V = this.obj.F.individual.norm(a_chan,iVert);
+                                            V = this.o.F.individual.norm(a_chan,iVert);
                                     end
                                     ei = this.offset(1)*ones(size(a_chan,2),1)*1.1;
                                     ej = this.offset(2)  + x(a_chan)*.7e-3;
@@ -452,14 +473,14 @@ classdef retino_plotter < handle
                                     set(h.scatter3, 'SizeData', dotSize, 'CData', C);
                                 end
                             case false
-                                this.vert = obj(aiPatch).loResVert(1);
+                                this.vert = o(aiPatch).loResVert(1);
                                 this.offset = nodes(nodes==this.vert,2:4);
-                                switch obj.ori
-                                    case 'x', V = this.obj.F.mean.x(a_chan,:);
-                                    case 'y', V = this.obj.F.mean.y(a_chan,:);
-                                    case 'z', V = this.obj.F.mean.z(a_chan,:);
+                                switch o.ori
+                                    case 'x', V = this.o.F.mean.x(a_chan,:);
+                                    case 'y', V = this.o.F.mean.y(a_chan,:);
+                                    case 'z', V = this.o.F.mean.z(a_chan,:);
                                     otherwise
-                                        V = this.obj.F.mean.norm(a_chan,:);
+                                        V = this.o.F.mean.norm(a_chan,:);
                                 end
                                 ei = this.offset(1)*ones(size(a_chan))*1.1;
                                 ej = this.offset(2)  + x(a_chan)*1e-3;
@@ -471,13 +492,13 @@ classdef retino_plotter < handle
                         end
                     end
                     hColorbar = colorbar;
-                    set(hColorbar, 'YTick', [0 1], 'YTickLabel', {sprintf('F%s=%.2g',obj.ori, Fmin) sprintf('F%s=%.2g',obj.ori, Fmax)})
+                    set(hColorbar, 'YTick', [0 1], 'YTickLabel', {sprintf('F%s=%.2g',o.ori, Fmin) sprintf('F%s=%.2g',o.ori, Fmax)})
                     axis equal vis3d
                 otherwise
             end
         end %k
-        function plot_flat2(obj)
-            rs = obj.cfg.rs;
+        function plot_flat2(o)
+            rs = o.cfg.rs;
             rp = rs.retinoPatch;
             figure(171)
             for i = 1:length(rs.lh.flat.vert(:,1))
@@ -507,7 +528,7 @@ classdef retino_plotter < handle
                 end
             end
         end %k
-        function plot_topo(obj, F, type)
+        function plot_topo(o, F, type)
             hptsfile = '/raid/sensors/temp/a.hpts';
             [i, i_sens, x, y, z] = textread(hptsfile, '%s %f %f %f %f'); %a.hpts
             if nargin >2

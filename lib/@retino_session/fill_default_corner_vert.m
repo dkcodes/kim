@@ -10,6 +10,9 @@ function fill_default_corner_vert(rs, cfg)
 		this.roi_name = explode('-', rois{i_rois});
 		hemi = this.roi_name{2};
 		area = str2double(this.roi_name{1}(2));
+        if size(this.roi_name{1},2)<3
+            confirm_input = input(sprintf('This roi (%s) doesn''t seem to have D/V distinction, is this correct?', rois{i_rois}));
+        end
 		dorsal_ventral = this.roi_name{1}(3);
 		if isequal(hemi, 'L')
 			vert_full = rs.lh.flat.vert_full;
