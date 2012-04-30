@@ -26,13 +26,13 @@ classdef retino_plotter < handle
             subplot(1,2,1); hold on; axis equal square;
             %          patch('Faces', rs.lh.flat.tris, 'Vertices', rs.lh.flat.vert_full(:,2:4), 'EdgeColor', [.65 .65 .65], 'FaceColor', 'w');
             i_not_nan = ~isnan(rs.lh.flat.vert_full(:,2));
-%             rs.lh.h.nodes = plot3(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), 10*ones(size(rs.lh.flat.vert_full(i_not_nan,3))), '.');
-            rs.lh.h.nodes = plot(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), '.');
-            set(rs.lh.h.nodes, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
+%             rs.h.nodes.lh = plot3(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), 10*ones(size(rs.lh.flat.vert_full(i_not_nan,3))), '.');
+            rs.h.nodes.lh = plot(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), '.');
+            set(rs.h.nodes.lh, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
             subplot(1,2,2); hold on; axis equal square;
-%             rs.rh.h.nodes = plot3(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), -10*ones(size(rs.rh.flat.vert_full(:,3))), '.');
-            rs.rh.h.nodes = plot(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), '.');
-            set(rs.rh.h.nodes, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
+%             rs.h.nodes.rh = plot3(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), -10*ones(size(rs.rh.flat.vert_full(:,3))), '.');
+            rs.h.nodes.rh = plot(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), '.');
+            set(rs.h.nodes.rh, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
             %          patch('Faces', rs.rh.flat.tris, 'Vertices', rs.rh.flat.vert_full(:,2:4), 'EdgeColor', [.65 .65 .65], 'FaceColor', 'w');
             for i_source = 1:3%rs.a_source
                 for i_patch = rs.a_patch

@@ -1,26 +1,12 @@
 classdef retino_curveset < handle
     properties
         rs
-        
-        s_rois
         curve
-        
-        h
-        
-        etc
-        map
-        
-        grid
-        
-        
-        topology
-        
         flatvert
     end
     
     methods
         function o = retino_curveset(rs)
-            o.grid.n = 10;
             o.rs = rs;
         end
         function o = new_curve(o)
@@ -28,10 +14,19 @@ classdef retino_curveset < handle
             if isempty(o.curve)
                 o.curve = rc;
             else
-                if isempty(o.curve(end).coord.data.x)
-                    o.curve(end) = rc;
+                if ~isfield_recursive(o.curve(end), 'coord', 'data', 'x')
+                    if isfield_recursive(o.curve(end), 'coord', 'tmp_data', 'drawing')
+                        delete(o.curve(end).coord.tmp_data.drawing);
+                    end
+                    disp('Does not seem like o.curve(end).coord.data.x is set')
+                    disp('Simply redraw the curve, and set the curve');
+                    return;
                 else
-                    o.curve(end+1) = rc;
+                    if isempty(o.curve(end).coord.data.x)
+                        o.curve(end) = rc;
+                    else
+                        o.curve(end+1) = rc;
+                    end
                 end
             end
         end
@@ -87,6 +82,30 @@ classdef retino_curveset < handle
             contour(X, Y, reshape(avals, n, n), 20)
             view([0 90])
         end
+        function o = remove_curve(o, ind)
+            if nargin<2
+                if isempty(o.curve)
+                    disp('This curveset contains no curves.')
+                    return
+                else
+                    try
+                        delete(o.curve(end).coord.data.drawing)
+                    end
+                    o.curve(end) = [];
+                end
+            else
+                if ind > numel(o.curve)
+                    fprintf('This curveset only has %g curves.\n', numel(o.curve))
+                    return
+                else
+                    try
+                        delete(o.curve(end).coord.data.drawing)
+                    end
+                    o.curve(ind) = [];
+                end
+            end
+
+        end
         function index = get_ind(o, region, e_range, a_range)
             rs = o.rs;
             s_roi = rs.rois.name;
@@ -111,6 +130,5 @@ classdef retino_curveset < handle
         function bin = roi_2_binary(s_roi, region)
             bin=2^(find(cellfun( @(x) isequal(x, region), s_roi)));
         end
-        
     end
 end

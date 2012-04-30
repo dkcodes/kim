@@ -53,8 +53,9 @@ classdef retino_preproc < handle
 				cfg.rs = o.rs;
 				cfg.aPatch = [];%rs.aPatch;
 				rplot.cfg = cfg;
-% 				rplot.plot_flat;
+                rplot.plot_flat;
                 rplot.plot_flat_retino;
+                set(o.rs.h.retino.all, 'visible', 'off')
 				set(171, 'Position', [2   100   704   333])
 				rplot.plot_flat_rois();
 				cfg.n_spokes = 4; cfg.n_rings = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');

@@ -12,11 +12,11 @@ function mouseDownFcn(hFig, empt)
 		if figtarget(1)<(figPosition(3)/2)
 			rs.thisVert.hemi = 'L';
 			nodesAll    = rs.lh.flat.vert_full;
-			h.nodes = rs.lh.h.nodes; % this needs to be non-specific
+			h.nodes = rs.h.nodes.lh; % this needs to be non-specific
 		else
 			rs.thisVert.hemi = 'R';
 			nodesAll    = rs.rh.flat.vert_full;
-			h.nodes = rs.rh.h.nodes; % this needs to be  non-specific
+			h.nodes = rs.h.nodes.rh; % this needs to be  non-specific
 		end
 	end
 	if ~isempty(keyChoice)

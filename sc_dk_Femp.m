@@ -31,9 +31,11 @@ a_days             = 1;
 
 % fMRI Settings
 % skeri00xy subjects 
-% s_rois.name        = {'V3D-L'    'V2D-L'    'V1D-L'    'V1V-L'    'V2V-L'    'V3V-L' ...
-%     'V3D-R'    'V2D-R'    'V1D-R'    'V1V-R'    'V2V-R'    'V3V-R'    };
-% s_rois.type  = 'Gray';
+s_rois.name        = {'V3D-L'    'V2D-L'    'V1D-L'    'V1V-L'    'V2V-L'    'V3V-L' ...
+    'V3D-R'    'V2D-R'    'V1D-R'    'V1V-R'    'V2V-R'    'V3V-R'    };
+s_rois.type  = 'Gray';
+options.fmri.toggle     = false;
+options.fmri.reset      = false;
 
 s_rois.name        = {'V3D-L'    'V2D-L'  'V1-L'    'V2V-L'    'V3V-L' ...
     'V3D-R'    'V2D-R'   'V1-R'   'V2V-R'    'V3V-R'    };
