@@ -1,17 +1,23 @@
 classdef retino_curve < handle
     properties
-        region % Visual regions 'V3V-L'
+        region % Visual regions. e.g. 'V3V-L'
         type   % (e)ccentricity or (a)ngle
         val    % value of e or a
-        coord  % coordinates 
+        coord  % coordinates
+        hemi
+        curveset
     end
     methods
-        function o = retino_curve()
+        function o = retino_curve(cs)
+            o.curveset = cs;
         end
         function o = draw_curve(o)
             o.sketch([],[], 'init', 171, o)
         end
         function o = set_curve(o)
+            cs = o.curveset;
+            rs = cs.rs;
+            s_roi = rs.rois.name;
             if ~isfield_recursive(o.coord, 'tmp_data')
                 disp('Does not seem like o.coord has any data. Draw the curve and set the data')
                 return
@@ -22,6 +28,21 @@ classdef retino_curve < handle
                 end
                 if isempty(o.val)
                     o.val = input('Enter the value for ecc/angle : ');
+                end
+                if ~isempty(o.val) && ~isempty(o.type)
+                    if isequal(o.type, 'a')
+                        a_region = get(rs.h.curveset.gui.roi_list, 'value');
+                        o.region = cs.roi_2_binary(s_roi, rs.rois.name(a_region));
+                    else
+                        o.region = cs.roi_2_binary(s_roi, s_roi);
+                    end
+                end
+                if isequal(o.coord.data.ax, rs.h.main.lh)
+                    o.coord.data.hemi = 'lh';
+                elseif isequal(o.coord.data.ax, rs.h.main.rh)
+                    o.coord.data.hemi = 'rh';
+                else
+                    error('Unknown hemisphere');
                 end
                 fprintf('Curve set to   :   (%s, %g)\n', o.type, o.val')
             end
@@ -43,18 +64,18 @@ classdef retino_curve < handle
                     set(fig,'UserData',info,...
                         'WindowButtonDownFcn', {@retino_curve.sketch, 'down', fig, o });
                 case 'down'
-                    fig = gcbf;
-                    info = get(fig,'UserData');
-                    info.ax = get(gcf, 'CurrentAxes');
-                    try, delete(info.drawing), end
-                    curpos = get(info.ax,'CurrentPoint');
-                    info.x = curpos(1,1);
-                    info.y = curpos(1,2);
-                    
-                    info.drawing = line(info.x, info.y, 'Color', 'k', 'marker', '.', 'tag', 'retino_curve');
-                    set(fig,'UserData',info,...
-                        'WindowButtonMotionFcn',{@retino_curve.sketch, 'move', fig, o },...
-                        'WindowButtonUpFcn',{@retino_curve.sketch, 'up', fig, o });
+                        fig = gcbf;
+                        info = get(fig,'UserData');
+                        info.ax = get(gcf, 'CurrentAxes');
+                        try, delete(info.drawing), end
+                        curpos = get(info.ax,'CurrentPoint');
+                        info.x = curpos(1,1);
+                        info.y = curpos(1,2);
+                        
+                        info.drawing = line(info.x, info.y, 'Color', 'k', 'marker', '.', 'tag', 'retino_curve');
+                        set(fig,'UserData',info,...
+                            'WindowButtonMotionFcn',{@retino_curve.sketch, 'move', fig, o },...
+                            'WindowButtonUpFcn',{@retino_curve.sketch, 'up', fig, o });
                 case 'move'
                     fig = gcbf;
                     info = get(fig,'UserData');
@@ -69,7 +90,7 @@ classdef retino_curve < handle
                     set(fig,'UserData',info);
                     o.coord.tmp_data = info;
                     set(fig,'WindowButtonMotionFcn','', ...
-                            'WindowButtonUpFcn','');
+                        'WindowButtonUpFcn','');
             end
         end
     end

@@ -20,16 +20,17 @@ classdef retino_plotter < handle
         function plot_flat(o)
             rs = o.cfg.rs;
             rp = rs.retinoPatch;
-            h.fig = 171;
+            rs.h.main.fig = 171;
+            h.fig = rs.h.main.fig;
             figure(h.fig); clf(h.fig);
             
-            subplot(1,2,1); hold on; axis equal square;
+            rs.h.main.lh = subplot(1,2,1); hold on; axis equal square;
             %          patch('Faces', rs.lh.flat.tris, 'Vertices', rs.lh.flat.vert_full(:,2:4), 'EdgeColor', [.65 .65 .65], 'FaceColor', 'w');
             i_not_nan = ~isnan(rs.lh.flat.vert_full(:,2));
 %             rs.h.nodes.lh = plot3(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), 10*ones(size(rs.lh.flat.vert_full(i_not_nan,3))), '.');
             rs.h.nodes.lh = plot(rs.lh.flat.vert_full(i_not_nan,2), rs.lh.flat.vert_full(i_not_nan,3), '.');
             set(rs.h.nodes.lh, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
-            subplot(1,2,2); hold on; axis equal square;
+            rs.h.main.rh = subplot(1,2,2); hold on; axis equal square;
 %             rs.h.nodes.rh = plot3(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), -10*ones(size(rs.rh.flat.vert_full(:,3))), '.');
             rs.h.nodes.rh = plot(rs.rh.flat.vert_full(:,2), rs.rh.flat.vert_full(:,3), '.');
             set(rs.h.nodes.rh, 'color', [ .6 .6 .6], 'HitTest', 'on', 'Tag', 'nodes');
@@ -40,11 +41,11 @@ classdef retino_plotter < handle
                         t.rp = rp(i_source, i_patch);
                         switch t.rp.hemi
                             case 'L'
-                                subplot(1,2,1);
+                                subplot(rs.h.main.lh);
                                 flat = rs.lh.flat;
                                 %                                 xlim([-40 30]);  ylim([-10 40]);
                             case 'R'
-                                subplot(1,2,2);
+                                subplot(rs.h.main.rh);
                                 flat = rs.rh.flat;
                                 %                                 xlim([0 60]);  ylim([-40 30]);
                             otherwise
@@ -79,7 +80,12 @@ classdef retino_plotter < handle
             for i_hemi = 1:numel(s_hemi)
                 hemi = s_hemi{i_hemi};
                 subplot(1,2,i_hemi); hold on; axis equal square;
-                set(gca,'xdir','reverse')
+                if isequal(hemi, 'lh')
+%                     set(gca,'xdir','reverse')
+                else
+                    set(gca, 'ydir', 'reverse')
+%                     set(gca, 'xdir', 'reverse')
+                end
                 
                 vert = rs.(hemi).flat.vert_full;
                 if isequal(i_hemi, 1) %% temporary. Sometimes these flat verts have outliers and needs manual deletion

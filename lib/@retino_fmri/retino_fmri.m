@@ -34,7 +34,7 @@ classdef retino_fmri < handle
             vw = loadCorAnal(vw, 'E:\raid\MRI\anatomy\BerkeleyEEGMEGRetino\DK\DK_DATA\Gray\Blurred3mm\corAnal.mat');
             o.mrv.coord = vw.coords;
             o.mrv.raw.ph = vw.ph;
-
+            
             close(h_vw)
             cd(old_wd);
         end
@@ -78,7 +78,7 @@ classdef retino_fmri < handle
             prop_list = properties(o);
             for i_prop = 1:numel(prop_list)
                 if ~isequal(prop_list{i_prop}, 'rs')
-                     o.(prop_list{i_prop}) = data.(prop_list{i_prop});
+                    o.(prop_list{i_prop}) = data.(prop_list{i_prop});
                 end
             end
         end
@@ -89,7 +89,7 @@ classdef retino_fmri < handle
                 if fWhite2Pial ~= 1
                     msh.data.vertices = (1-fWhite2Pial)*msh.initVertices + fWhite2Pial*msh.data.vertices;
                 end
-                msh.data.triangles = msh.data.triangles + 1;            
+                msh.data.triangles = msh.data.triangles + 1;
                 o.vert=msh.data.vertices;
                 o.coord = o.mrv.coord([2 1 3],:);
             end
@@ -98,20 +98,20 @@ classdef retino_fmri < handle
             msh = o.msh;
             vert = msh.data.vertices;
             if isequal(hemi, 'lh')
-                [indices, ~]=nearpoints(vert(:,1:msh.nVertexLR(1)), coord);           
+                [indices, ~]=nearpoints(vert(:,1:msh.nVertexLR(1)), coord);
             elseif isequal(hemi, 'rh')
                 [indices, ~]=nearpoints(vert(:,(msh.nVertexLR(1)+1):sum(msh.nVertexLR)), coord);
             else
                 error('Unknown hemisphere, requires lh or rh');
             end
         end
+
     end
-    methods (Static) 
+    methods (Static)
         function out = fix_phase(in)
             in(in<0) = in(in<0)+2*pi;
             out = in;
         end
-        
     end
     
 end
