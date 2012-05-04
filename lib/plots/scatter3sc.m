@@ -1,6 +1,7 @@
 function [h, a_color] = scatter3sc(x,y,z,s1,min_max)
 h=scatter3(x, y, z, '.');
 colorm = jet(1000);
+colorm = copper(1000);
 if nargin <=4
   c1 = s1-min(s1); c1 = c1/max(c1);
   c1 = c1*.5;

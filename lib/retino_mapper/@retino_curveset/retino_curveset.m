@@ -108,7 +108,8 @@ classdef retino_curveset < handle
             end
             
         end
-        function index = get_ind(o, region, e_range, a_range)
+        function index = get_ind(o, region_str, e_range, a_range)
+            
             rs = o.rs;
             s_roi = rs.rois.name;
             e0 = e_range(1);
@@ -116,16 +117,25 @@ classdef retino_curveset < handle
             a0 = a_range(1);
             a1 = a_range(2);
             fv = o.flatvert.lh;
-            i_e = fv(:,4)>=e0 & fv(:,4)<=e1;
-            i_a = fv(:,5)>=a0 & fv(:,5)<=a1;
-            this.type = o.roi_2_binary(s_roi, region);
-            i_type = bitand(fv(:,6), this.type);
-            index = find(i_e & i_a & i_type);
+            if isequal(e0, e1) ||  isequal(a0, a1)
+                this.type = o.roi_2_binary(s_roi, region_str);
+                i_type = logical(bitand(fv(:,6), this.type));
+                
+                [~, m]=nearpoints2d(fv(i_type,4:5)',   [e0; a0]);
+                f = fv(i_type,:);
+                index = f(find(m==min(m),1));
+            else
+                i_e = fv(:,4)>=e0 & fv(:,4)<=e1;
+                i_a = fv(:,5)>=a0 & fv(:,5)<=a1;
+                this.type = o.roi_2_binary(s_roi, region_str);
+                i_type = bitand(fv(:,6), this.type);
+                index = find(i_e & i_a & i_type);
+            end
         end
-        function bin = add_roi_as_binary(o, fv, region)
+        function bin = add_roi_as_binary(o, fv, region_str)
             rs = o.rs;
             s_roi = rs.rois.name;
-            bin = bitor(fv, o.roi_2_binary(s_roi, region));
+            bin = bitor(fv, o.roi_2_binary(s_roi, region_str));
         end
         function o = retino_curveset_gui(o)
             rs = o.rs;
