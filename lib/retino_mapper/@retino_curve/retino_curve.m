@@ -4,6 +4,7 @@ classdef retino_curve < handle
         type   % (e)ccentricity or (a)ngle
         val    % value of e or a
         coord  % coordinates
+        h
         hemi
         curveset
     end
@@ -22,7 +23,11 @@ classdef retino_curve < handle
                 disp('Does not seem like o.coord has any data. Draw the curve and set the data')
                 return
             else
-                o.coord.data = o.coord.tmp_data;
+                o.coord.data.x = o.coord.tmp_data.x;
+                o.coord.data.y = o.coord.tmp_data.y;
+                o.h.ax = o.coord.tmp_data.ax;
+                o.h.line = o.coord.tmp_data.drawing;
+                o.coord = rmfield(o.coord, 'tmp_data');
                 if isempty(o.type)
                     o.type = input('(e)ccentricities / (a)ngle? : ', 's');
                 end
@@ -37,10 +42,10 @@ classdef retino_curve < handle
                         o.region = cs.roi_2_binary(s_roi, s_roi);
                     end
                 end
-                if isequal(o.coord.data.ax, rs.h.main.lh)
-                    o.coord.data.hemi = 'lh';
-                elseif isequal(o.coord.data.ax, rs.h.main.rh)
-                    o.coord.data.hemi = 'rh';
+                if isequal(o.h.ax, rs.h.main.lh)
+                    o.hemi = 'lh';
+                elseif isequal(o.h.ax, rs.h.main.rh)
+                    o.hemi = 'rh';
                 else
                     error('Unknown hemisphere');
                 end
@@ -87,7 +92,7 @@ classdef retino_curve < handle
                 case 'up'
                     fig = gcbf;
                     info = get(fig,'UserData');
-                    set(fig,'UserData',info);
+%                     set(fig,'UserData',info);
                     o.coord.tmp_data = info;
                     set(fig,'WindowButtonMotionFcn','', ...
                         'WindowButtonUpFcn','');
