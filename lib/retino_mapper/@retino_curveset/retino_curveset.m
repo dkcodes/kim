@@ -3,7 +3,8 @@ classdef retino_curveset < handle
         rs
         curve
         flatvert
-        
+    end
+    properties (SetObservable=true)
         current
     end
     
@@ -14,6 +15,10 @@ classdef retino_curveset < handle
                 o.load();
             end
             o = o.gui();
+            o.key_fcn([],[],o, '|'); % Initializes the slider
+            o.key_fcn([],[],o, '4_on'); % Initialize the line drawings
+            addlistener(o,'current','PostSet',@o.handle_prop_events);
+            o.current = 1;
         end
         function o = new_curve(o)
             rc = retino_curve(o);
@@ -93,8 +98,8 @@ classdef retino_curveset < handle
         function o = gui(o)
             rs = o.rs;
             s_roi = rs.rois.name;
-            n_button = 20;
-            pv=[repmat(.01, n_button, 1) linspace(.9,0,n_button)' repmat(.1, n_button, 1) repmat(.05, n_button, 1)];
+            n_button = 25;
+            pv=[repmat(.01, n_button, 1) linspace(.9,0,n_button)' repmat(.1, n_button, 1) repmat(.8/n_button, n_button, 1)];
             p.fh = 171;
             p.uh=uicontrol('unit', 'norm', 'position', [0.475 0.1 .087 .5],'style','text', ...
                 'fontname','courier new','fontsize',14,'fontweight', 'bold','horizontalalignment','center');
@@ -105,13 +110,17 @@ classdef retino_curveset < handle
             p.bh(5)=uicontrol('unit', 'norm', 'position', pv(5,:), 'string', '2  Toggle ROI', 'callback', {@o.key_fcn, o, '2'});
             p.bh(6)=uicontrol('unit', 'norm', 'position', pv(6,:), 'string', '3  Toggle Nodes', 'callback', {@o.key_fcn, o, '3'});
             p.bh(7)=uicontrol('unit', 'norm', 'position', pv(7,:), 'string', '4  Toggle Curve', 'callback', {@o.key_fcn, o, '4'});
-            p.eh(1)=uicontrol('unit', 'norm', 'style', 'edit', 'position', pv(8,:), 'callback', {@o.key_fcn, o, '/'});
-            p.eh(2)=uicontrol('unit', 'norm', 'style', 'edit', 'position', pv(9,:), 'callback', {@o.key_fcn, o, '/'});
-            p.eh(3)=uicontrol('unit', 'norm', 'style', 'edit', 'position', pv(10,:), 'callback', {@o.key_fcn, o, '/'});
             
-            p.slider =uicontrol('unit', 'norm', 'style', 'slider', 'sliderstep', [1 1], 'min', 1, 'max', 2, 'value', 1, 'position', [.3 .85 .4 .1], 'callback', {@o.key_fcn, o, '7'});
+            eh_pn = {'unit', 'style', 'callback',           'backgroundcolor'};
+            eh_pv  = {'norm', 'edit',  {@o.key_fcn, o, '/'}, 'w'              };
+            p.eh(1)=uicontrol(eh_pn, eh_pv); set(p.eh(1),'position', pv(8,:) );
+            p.eh(2)=uicontrol(eh_pn, eh_pv); set(p.eh(2),'position', pv(9,:) );
+            p.eh(3)=uicontrol(eh_pn, eh_pv); set(p.eh(3),'position', pv(10,:) );
             
-            p.roi_list=uicontrol('unit', 'norm', 'style', 'list', 'position', [pv(19,1:2) .1 .3], 'callback', {@o.key_fcn, o, '-'});
+            p.slider =uicontrol('unit', 'norm', 'style', 'slider', 'sliderstep', [1 1], 'min', 1, 'max', 2, 'value', 1, ...
+                'position', [.3, pv(1,2) .4 pv(1,4)], 'callback', {@o.key_fcn, o, '|'});
+            
+            p.roi_list=uicontrol('unit', 'norm', 'style', 'list', 'position', [pv(n_button-1,1:2) .1 .3], 'callback', {@o.key_fcn, o, '-'});
             set(p.roi_list, 'min', 1, 'max', numel(s_roi), 'string', s_roi);
             set(p.fh, 'keypressfcn', {@o.key_fcn, o});
             rs.h.curveset.gui = p;
@@ -218,10 +227,10 @@ classdef retino_curveset < handle
                     set(o.rs.h.curveset.gui.uh, 'backgroundcolor', rand(1,3))
                     figure(h_fig)
                 case {'d'}
-                    o.remove_curve();
+                    o.remove_curve(o.current);
                     set(o.rs.h.curveset.gui.uh, 'backgroundcolor', rand(1,3))
                     fprintf('The curveset now has %g curves.\n', numel(o.curve));
-                    set(h_gui.uh,'string', sprintf('Delete last curve.\n\n%g left.\n', numel(o.curve)));
+                    set(h_gui.uh,'string', sprintf('Delete.\n\n%g left.\n', numel(o.curve)));
                 case {'1'}
                     if  isequal(get(o.rs.h.retino.all(1), 'visible'), 'on')
                         set(o.rs.h.retino.all, 'visible', 'off')
@@ -242,9 +251,19 @@ classdef retino_curveset < handle
                         set(o.rs.h.nodes.lh, 'visible', 'on')
                         set(o.rs.h.nodes.rh, 'visible', 'on')
                     end
-                case {'4'}
+                case {'4' '4_on' '4_off'} % Toggling curve visibility
                     n_curve = numel(o.curve);
-                    if numel(findobj(gcf, 'tag', 'retino_curve'))==0
+                    if isequal(key, '4_off')
+                        vis_toggle = false;
+                    elseif isequal(key, '4_on')
+                        vis_toggle = true;
+                    elseif numel(findobj(gcf, 'tag', 'retino_curve'))==0
+                        vis_toggle = true;
+                    else
+                        vis_toggle = false;
+                    end
+                    try, delete(findobj(gcf, 'tag', 'retino_curve')); end
+                    if vis_toggle
                         for i_curve = 1:n_curve
                             this_curve = o.curve(i_curve);
                             x = this_curve.coord.data.x;
@@ -254,16 +273,21 @@ classdef retino_curveset < handle
                             o.curve(i_curve).h.line = plot(x, y, 'k.-', 'tag', 'retino_curve');
                         end
                     else
-                        try, delete(findobj(gcf, 'tag', 'retino_curve')); end
                         for i_curve = 1:n_curve
                             o.curve(i_curve).h.line = [];
                         end
                     end
-                case {'7'}
+                case {'|'} % Changing slider
                     n_curve = numel(o.curve);
-                    set(h_gui.slider, 'min', 1, 'max', n_curve+1, 'sliderstep', [1 1]/n_curve) 
-                    
+                    if n_curve < 1
+                        return;
+                    elseif n_curve ==  1
+                        set(h_gui.slider, 'min', 1, 'max', n_curve+1, 'sliderstep', [1 1]/n_curve) 
+                    else
+                        set(h_gui.slider, 'min', 1, 'max', n_curve, 'sliderstep', [1 1]/(n_curve-1)) 
+                    end
                     i_curve   = get(h_gui.slider, 'value');
+                    o.current = i_curve;
                     if i_curve <= n_curve
                         this_curve = o.curve(i_curve);
                         region = this_curve.region;
@@ -273,16 +297,20 @@ classdef retino_curveset < handle
                         set(h_gui.eh(2), 'string', sprintf('%s', type));
                         set(h_gui.eh(3), 'string', sprintf('%g', val));
                     end  
-                case {'/'}
+                case {'/'} % Changing the field
                     n_curve = numel(o.curve);
                     i_curve   = get(h_gui.slider, 'value');
                     if i_curve <= n_curve
                         region = get(h_gui.eh(1), 'string');
                         type   = get(h_gui.eh(2), 'string');
                         val    = get(h_gui.eh(3), 'string');
-                        o.curve(i_curve).region = str2double(region);
                         o.curve(i_curve).type = type;
                         o.curve(i_curve).val = str2double(val);
+                        if isempty(region)
+                            o.curve(i_curve).region = get(o.rs.h.curveset.gui.roi_list,'value');
+                        else
+                            o.curve(i_curve).region = str2double(region);
+                        end
                     end
                 case {'-'}
                 otherwise
@@ -300,6 +328,23 @@ classdef retino_curveset < handle
                 else
                     bin = bin + 2^(find(cellfun( @(x) isequal(x, this.region), s_roi)));
                 end
+            end
+        end
+        function handle_prop_events(src,evnt)
+            o = evnt.AffectedObject;
+            switch src.Name % switch on the property name
+                case 'current'
+                    o.key_fcn([],[],o, '4_on');
+                    try
+                        for i_curve = 1:numel(o.curve)
+                            if i_curve==o.current
+                                set(o.curve(i_curve).h.line, 'color', 'r');
+                            else
+                                set(o.curve(i_curve).h.line, 'color', 'k');
+                            end
+                        end
+                    end
+                otherwise
             end
         end
     end
