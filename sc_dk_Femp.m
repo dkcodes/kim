@@ -1,5 +1,5 @@
-cd('E:\raid\MRI\toolbox\kim')
-clear
+cd('E:\raid\MRI\toolbox\kim');
+clear;
 
 % Subject definitions
 s_subj={
@@ -8,10 +8,8 @@ s_subj={
     };
 
 g.dirs = 'tmp';
-
 g.desc = sprintf('DK testing Femp\n');
 g.list = s_subj;
-
 
 % Stimulus Settings
 n_spokes = 16; % needs > 4 (Left, right, up, down)
@@ -28,6 +26,7 @@ a_kern             = [1];
 a_time             = 1:100;
 a_chan             = [1:128];
 a_days             = 1;
+h_main             = 171;
 
 % fMRI Settings
 % skeri00xy subjects 
@@ -40,7 +39,7 @@ a_days             = 1;
 s_rois.name        = {'V3D-L'    'V2D-L'  'V1-L'    'V2V-L'    'V3V-L' ...
     'V3D-R'    'V2D-R'   'V1-R'   'V2V-R'    'V3V-R'    };
 s_rois.type  = 'Gray';
-options.fmri.toggle     = true;
+options.fmri.toggle     = true; % reads & makes fmri.mat file in berkeley dir.
 options.fmri.reset      = false;
 
 % For simulation study
@@ -66,8 +65,9 @@ if toggle_make_params
     % Modify make_params.m to reflect experimental parameters.
     make_params(g, expt);
 end
-
 info = load_params(fullfile('in', 'param', g.dirs, 'info.mat'));
+
+h_main = 171;
 for i_subj = 1:numel(s_subj)
     this.filename = fullfile ('in', 'param', info.g.dirs, info.g.list{i_subj});
     p = load_params(this.filename); %#ok<*NASGU>

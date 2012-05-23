@@ -71,7 +71,7 @@ function mouseDownFcn(hFig, empt)
 						this.h(i_corner) = plot3(nodesAll(destVert,2), nodesAll(destVert,3), nodesAll(destVert,4), 'rs');
 					end
 					new_vert(i_corner) = destVert;
-					figure(171);
+					figure(rs.h.main.fig);
 				end
 				pause(.75);
 				%          try;  delete(this.h); end;
@@ -82,7 +82,7 @@ function mouseDownFcn(hFig, empt)
 			case '/'
 				setappdata(hFig,'keyChoice', []);
 			case 'add_new_patch'
-				uiresume(171);
+				uiresume(rs.h.main.fig);
 				[empt,V,empt,empt] = vertexpicker(h.nodes, target);
 				i_corner = rs.thisVert.new_vert.i_corner;
 				v = find(ismember(nodesAll(:,2:4),V,'rows'));

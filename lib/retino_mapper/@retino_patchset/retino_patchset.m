@@ -12,36 +12,34 @@ classdef retino_patchset < handle
             o.s_roi = cs.rs.rois.name;
         end
         function o = make_partition(o, fv, i_roi)
-            
             region = o.s_roi{i_roi};
-            e0 = 7;
-            e1 = 10;
+            e0 = 2;
+            e1 = 12;
             a0 = 0;
-            a1 = pi;
+            a1 = pi/2;
             
             
             n_e = 3;
             n_a = 2;
             er = linspace(e0, e1, n_e+1);
-            
             ar = linspace(a0, a1, n_a+1);
-            er = 7:11;
-            ar = [0 pi/2 10];
+%             er = 7:11;
+%             ar = [0 pi/2 10];
             
             count = 0;
-            for i_e = 1:numel(er)-1
-                ecc_range = [er(i_e) er(i_e+1)];
-                for i_a = 1:numel(ar)-1
-                    ang_range = [ar(i_a) ar(i_a+1)] ;
-                    ecc_range = [er(i_e) er(i_e)];
+            for i_e = 1:numel(er)
+%                 ecc_range = [er(i_e) er(i_e+1)];
+                ecc_range = [er(i_e) er(i_e)];
+                for i_a = 1:numel(ar)
+%                     ang_range = [ar(i_a) ar(i_a+1)] ;
                     ang_range = [ar(i_a) ar(i_a)] ;
                     ii = o.cs.get_ind(region, ecc_range, ang_range);
                     count = count + 1;
                     o.cfg(count) = numel(ii);
-                    hhh = plot3(fv(ii,2), fv(ii,3), fv(ii,5)*10, 'ro');
+                    try, delete(findobj(171, 'tag', 'retino_patchset')), end;
+                    hhh = plot3(fv(ii,2), fv(ii,3), fv(ii,5)*10, 'ro', 'tag', 'retino_patchset');
 %                     hhh = scatter3sc(fv(ii,2), fv(ii,3), fv(ii,5)*10, fv(ii,5));
                     pause;
-%                     try, delete(hhh), end;
                 end
             end
         end

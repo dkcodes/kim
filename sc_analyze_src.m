@@ -60,12 +60,13 @@ rs.a_kern       = a_kern;
 rs.meg_chan     = meg_chan;
 rs.eeg_chan     = eeg_chan;
 rs.options      = options;
+rs.h.main.fig   = h_main;
 clear -regexp fwd
 
 rs.interpolate_fwd();
 r_pre                = retino_preproc(rs);
-cfg_corner_vert.type = 'patch';
-rs.fill_default_corner_vert(cfg_corner_vert);
+% cfg_corner_vert.type = 'patch';
+% rs.fill_default_corner_vert(cfg_corner_vert);
 rs.fill_fv();
 
 %% Initialize patches
@@ -74,7 +75,7 @@ rs.init_session_patch();
 rp = rs.retinoPatch;
 rs.fill_rois_area();
 %% Make Interactive Figure
-figure(171); close(171);
+figure(rs.h.main.fig); close(rs.h.main.fig);
 clear rplot;
 rplot       = retino_plotter;
 cfg.rs      = rs;

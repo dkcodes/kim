@@ -1,3 +1,3 @@
-fprintf('startup.m executed from E:\\raid\\MRI\\toolbox\\kim \n');
+fprintf('startup.m executed from %s\n', pwd);
 set(0, 'DefaultFigureRenderer', 'OpenGL');
 set(0, 'DefaultFigureRenderer', 'zbuffer');

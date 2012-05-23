@@ -1,6 +1,7 @@
 classdef retino_preproc < handle
 	%sensorPos -w sens -m -n -e -n CA01_STAN-pjolicoeur_20110630_01.ds
-	properties (SetObservable = true)
+% 	properties (SetObservable = true)
+    properties
 		rs
 		flat
 	end
@@ -9,18 +10,11 @@ classdef retino_preproc < handle
 			o.rs = rs;
 			% Check if flattened MRI is available
             if isfield_recursive(rs, 'options', 'fmri', 'toggle') && rs.options.fmri.toggle
-                disp('Processing fMRI from mrVista');
-                if isfield_recursive(rs, 'options', 'fmri', 'reset') && rs.options.fmri.reset
-                    reset_flag = true;
-                else
-                    reset_flag = false;
-                end
-                o.proc_fmri(reset_flag);
+                o.proc_fmri(isfield_recursive(rs, 'options', 'fmri', 'reset') && rs.options.fmri.reset);
             end
 			o.proc_flat_vert();
 			o.proc_source_weight();
-			o.proc_default_corner_vert();
-            
+% 			o.proc_default_corner_vert();
         end
 		function o = proc_flat_vert(o)
 			o.flat.status = o.get_status_flat(o.rs);
@@ -48,15 +42,15 @@ classdef retino_preproc < handle
 		function o = proc_default_corner_vert(o)
 			status = o.get_status_default_corner_vert(o.rs);
 			if isequal(status.file, 0)
-				figure(171); close(171);
+				figure(o.rs.h.main.fig); close(o.rs.h.main.fig);
 				rplot = retino_plotter;
 				cfg.rs = o.rs;
 				cfg.aPatch = [];%rs.aPatch;
 				rplot.cfg = cfg;
                 rplot.plot_flat;
                 rplot.plot_flat_retino;
-                set(o.rs.h.retino.all, 'visible', 'off')
-				set(171, 'Position', [2   100   704   333])
+                try, set(o.rs.h.retino.all, 'visible', 'off'); end
+				set(o.cfg.h_main, 'Position', [2   100   704   333])
 				rplot.plot_flat_rois();
 				cfg.n_spokes = 4; cfg.n_rings = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');
 				o.rs.fill_default_corner_vert(cfg);
@@ -67,6 +61,7 @@ classdef retino_preproc < handle
 			end
         end
         function o = proc_fmri(o, reset_flag)
+            disp('Processing fMRI from mrVista');
 			status = o.get_status_fmri(o.rs);
 			if isequal(status.file, 0) || reset_flag
 				fmri = retino_fmri(o.rs);
@@ -149,13 +144,6 @@ classdef retino_preproc < handle
 			fwd = o.rs.fwd;
 			save(fullfile(o.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
         end
-%{      
-		function o = save_default_corner_vert(o)
-			o.rs.fill_source_weight();
-			fwd = o.rs.fwd;
-			save(fullfile(o.rs.dirs.berkeley, 'fwd.mat'), 'fwd');
-        end
-%}
 	end
 	methods (Static)
 		function status = get_status_flat(rs)
@@ -172,6 +160,10 @@ classdef retino_preproc < handle
 			status.file = exist(fullfile(rs.dirs.berkeley, 'default_corner_vert.mat'), 'file');
         end
         function status = get_status_fmri(rs)
+			status.var = isfield_recursive(rs, 'fmri') && ~isempty(rs.fmri);
+			status.file = exist(fullfile(rs.dirs.berkeley, 'fmri.mat'), 'file');
+        end
+        function status = get_status_curveset(rs)
 			status.var = isfield_recursive(rs, 'fmri') && ~isempty(rs.fmri);
 			status.file = exist(fullfile(rs.dirs.berkeley, 'fmri.mat'), 'file');
 		end

@@ -1,5 +1,6 @@
 function fill_default_corner_vert(rs, cfg)
 	rois = rs.rois.name;
+        h_main = rs.h
 	n_spokes    = rs.design.n_spokes;
 	m           = rs.design.n_rings;
 	n           = n_spokes/4;
@@ -37,10 +38,10 @@ function fill_default_corner_vert(rs, cfg)
 		else
 			for i_corner = 1:4
 				rs.thisVert.button_state = 'on';
-				setappdata(171,'keyChoice', 'add_new_patch')
+				setappdata(rs.h.main.fig,'keyChoice', 'add_new_patch')
 				rs.thisVert.new_vert.i_corner = i_corner;
-				figure(171);
-				uiwait(171);
+				figure(rs.h.main.fig);
+				uiwait(rs.h.main.fig);
 				fprintf('%s:%g - ', rois{i_rois}, i_corner);
 			end
 		end

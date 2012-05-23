@@ -1,22 +1,25 @@
-function init_session_patch(obj)
-	n_source = numel(obj.a_source);
-	c1 = jet(32*n_source); c{1} = c1(1:32,:); %c = c(randperm(16),:);
-	c2 = jet(32*n_source); c{2} = c2(33:end,:);
-	c3 = jet(32*n_source); c{3} = c3(65:end,:);
-	for i_source = 1:length(obj.a_source)
-		ai_source = obj.a_source(i_source);
+function init_session_patch(o)
+	n_source = numel(o.a_source);
+    n_patch = numel(o.a_patch);
+	c1 = jet(n_patch*n_source); 
+    c{1} = c1(1:32,:); %c = c(randperm(16),:);
+	c{2} = c1(33:end,:);
+	c{3} = c1(65:end,:);
+	for i_source = 1:length(o.a_source)
+		ai_source = o.a_source(i_source);
 		fprintf('Building >> Source %g ::: Patch ', i_source);
-		for i_patch = 1:length(obj.a_patch)
-			ai_patch = obj.a_patch(i_patch);
+		for i_patch = 1:length(o.a_patch)
+			ai_patch = o.a_patch(i_patch);
 
 			rp(ai_source, ai_patch) = retino_patch;
-			rp(ai_source, ai_patch).session = obj;
+			rp(ai_source, ai_patch).session = o;
 			t.rp = rp(ai_source, ai_patch);
 			% Finds in the design matrix the roi file list corresponding to (iPatch, iSource)
 			t.rp.ind      = ai_patch;
 			t.rp.area     = ai_source;
-			t.rp.hiResCornerVert             = obj.default_corner_vert.patch(ai_source, ai_patch).hiResCornerVert;
-			t.rp.hemi                        = obj.default_corner_vert.patch(ai_source, ai_patch).hemi;
+% 			t.rp.hiResCornerVert             = o.default_corner_vert.patch(ai_source, ai_patch).hiResCornerVert;
+% 			t.rp.hemi                        = o.default_corner_vert.patch(ai_source, ai_patch).hemi;
+            t.rp.hemi = 'L';
 			try
 				t.rp.faceColor = c{i_source}(ai_patch,:);
 				t.rp.edgeColor = c{i_source}(ai_patch,:);
@@ -32,23 +35,22 @@ function init_session_patch(obj)
 			fprintf('%02g ', i_patch);
 		end
 		fprintf(' ::: %0.1g sec \n', toc);
-	end
-
+    end
         % temporary: create external parietal source
-        a=get_vert_from_asc(fullfile(obj.dirs.berkeley, 'lh.par.asc')); a = a(:,1);
-        b=get_vert_from_asc(fullfile(obj.dirs.berkeley, 'rh.par.asc')); b = b(:,1);
+        a=get_vert_from_asc(fullfile(o.dirs.berkeley, 'lh.par.asc')); a = a(:,1);
+        b=get_vert_from_asc(fullfile(o.dirs.berkeley, 'rh.par.asc')); b = b(:,1);
         e_rp(1) = retino_patch;
-        e_rp(1).session = obj;
+        e_rp(1).session = o;
         e_rp(1).hemi = 'L';
         e_rp(1).hiResVert = a;
         e_rp(1).calculate_forward_hi();
         e_rp(2) = retino_patch;
-        e_rp(2).session = obj;
+        e_rp(2).session = o;
         e_rp(2).hemi = 'R';
         e_rp(2).hiResVert = b;
         e_rp(2).calculate_forward_hi();
-        obj.external_patch = e_rp;
+        o.external_patch = e_rp;
 
-	obj.retinoPatch = rp;
-	obj.fill_pt();
+	o.retinoPatch = rp;
+	o.fill_pt();
 end

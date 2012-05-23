@@ -3,7 +3,8 @@ classdef retino_plotter < handle
         cfg
     end %k
     methods
-        function o=retino_plotter()
+        function o=retino_plotter(h_main)
+            cfg.h_main = h_main;
         end %k
         function update(o)
             rs = o.cfg.rs;
@@ -20,7 +21,7 @@ classdef retino_plotter < handle
         function plot_flat(o)
             rs = o.cfg.rs;
             rp = rs.retinoPatch;
-            rs.h.main.fig = 171;
+            rs.h.main.fig = cfg.h_gui;
             h.fig = rs.h.main.fig;
             figure(h.fig); clf(h.fig);
             
@@ -72,7 +73,7 @@ classdef retino_plotter < handle
             data_type = 'ph';
             
             rs = o.cfg.rs;
-            h.fig = 171;
+            h.fig = o.cfg.h_main;
             figure(h.fig);
             colormap(copper(100))
             
@@ -132,7 +133,7 @@ classdef retino_plotter < handle
             src = rs.fwd.src;
             rois = rs.rois.name;
             colors = jet(numel(rois));
-            h.fig = 171;
+            h.fig = o.cfg.h_main;
             if nargin==2
                 h.fig = h_fig;
             end
@@ -260,10 +261,11 @@ classdef retino_plotter < handle
                             set(h.rois.(roi_name), 'Marker', marker_shape{i_roi-numel(rois)/2}, ...
                                 'LineWidth', line_width(i_roi-numel(rois)/2));
                         end
+                    otherwise
                 end
             end
             try
-            rs.h.rois = h.rois;
+                rs.h.rois = h.rois;
             end
             setappdata(h.fig, 'rs', rs);
         end %k
@@ -506,7 +508,7 @@ classdef retino_plotter < handle
         function plot_flat2(o)
             rs = o.cfg.rs;
             rp = rs.retinoPatch;
-            figure(171)
+            figure(o.cfg.h_main)
             for i = 1:length(rs.lh.flat.vert(:,1))
                 lhverts(rs.lh.flat.vert(i,1),:) = rs.lh.flat.vert(i,2:4);
             end
