@@ -1,46 +1,33 @@
-function elp2fiff_jma()
-
-	% eeg_raw2fiff converts raw datafiles to the Neuromag FIFF format.
-	%
-	% Use as
-	%   eeg_raw2fiff( elpfile, datafile, [options] )
-	%
-	% - datafile is an ascii file with Nchannels rows and Nsamples columns
-	% - elpfile is electrode positions file in the .elp format
-	%
-	elpfile = '/raid/sensors/temp/a';
-
-
+function elp2fiff_jma(polhemus_filename, write_to_filename)
+    % Probably written or modified by Justin Ales.
+    % Further modification to work with Berkeley system.
+    % This is used in Berkeley to turn a polhemus digitizer data into an
+    % empty evoked (XXX-meas.fif) data to generate forward solution
+    
+    % Process
+    % 1) Use megDraw program to generate polhemus data
+    % 2) Use this program to call in the polhemus_filename
+    %   This program uses C = read_polhemus_data(polhemus_filename);
+    %   to read in the polhemus data in polhemus coordinate system
+    %   It will convert it to mne coordinate system then generate
+    %   empty evoked file.
+    %   The empty evoked file (write_to_filename_meas.fif) will be saved
+    %   meas.fif file can be called in from mne_analyze by load digitizer.
+    %   Then it can be aligned to the cortical surfaces by Adjust menu.
+    %   The transform (MRI->Head?? Otherway??) can be saved
+    %   meas.fif and trans.fif file is then used by do_mne_forward_solution
+    %   e.g. mne_do_forward_solution --fwd fwd_name --mindist 2.5 --eegonly --overwrite --spacing ico-5p --subject DK_fs4 --bem DK_fs4 --meas DK_042611_meas.fif --tran DK_042611_trans.fif
+    %   fwd_name file now contains forward solution that uses polhemus data
+    
+    
+    
 	me = 'EEG:eeg_raw2fiff';
-
 	covflag = 1;    % import covariance matrix
 	writeflag = 1;
 	showflag = 1;
 	flipxflag = 0;
 	flipyflag = 0;
 	flipzflag = 0;
-	%
-	% if nargin < 1
-	%     error( me, 'Incorrect number of arguments. Usage: eeg_raw2fiff( elpfile, [options] )' );
-	% elseif( nargin == 2 )
-	%     for i = 1 : size( flags, 2 )
-	%         if(     strcmpi( flags{ i }, 'nowrite' ) )
-	%             writeflag = 0;
-	%         elseif( strcmpi( flags{ i }, 'noshow' ) )
-	%             showflag = 0;
-	%         elseif( strcmpi( flags{ i }, 'flipx' ) )
-	%             flipxflag = 1;
-	%         elseif( strcmpi( flags{ i }, 'flipy' ) )
-	%             flipyflag = 1;
-	%         elseif( strcmpi( flags{ i }, 'flipz' ) )
-	%             flipzflag = 1;
-	%         else
-	%             error( me, 'Unknown option %s', flags{ i } );
-	%         end
-	%     end
-	% end
-	%
-	% fprintf( '\n' );
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	% write FIFF file in interactive mode
@@ -57,8 +44,6 @@ function elp2fiff_jma()
 	data.info.file_id.usecs     = 0;                   %   Do not know how we could get this
 	data.info.meas_date = '';
 
-
-
 	% write measurement id structure
 	data.info.meas_id.version  = data.info.file_id.version;
 	data.info.meas_id.machid   = data.info.file_id.machid;
@@ -66,39 +51,52 @@ function elp2fiff_jma()
 	data.info.meas_id.usecs    = data.info.file_id.usecs;
 
 	% read the elp file
-	%elp = elec_emse2matlab( elpfile ); % read the elp file
+	% polhemus_filename = '/raid/sensors/abc_4-26-11_run1';
+    % 
+	C = read_polhemus_data(polhemus_filename);   
+    % mne_suite and polhemus has different coordinate system
+    % Adjusting the coordinate system
+    eloc.lpa = C.lpa([2 1 3]);
+    eloc.rpa = C.rpa([2 1 3]);
+    eloc.nasion = C.nas([2 1 3]);
+    eloc.x = C.xyz(:,2);
+    eloc.y = C.xyz(:,1);
+    eloc.z = C.xyz(:,3);
 
-	% eloc = readelp(elpfile); %
+% 	for iEloc = 1:length(C{1})
+%       There were some changes and read_polhemus_data does not return cell
+%       arrayws anymore. Keeping this code for backup.
+% 		eloc(iEloc).X = C{2}(iEloc)/100;
+% 		eloc(iEloc).Y = C{1}(iEloc)/100;
+% 		eloc(iEloc).Z = C{3}(iEloc)/100;
+%       [xt, yt, zt]=sph2cart(abs(randn*pi/2),abs(randn*pi/4),.1);
+%       eloc(iEloc).X = xt;
+%       eloc(iEloc).Y = yt;
+%       eloc(iEloc).Z = zt;
+% 	end
+% 	elp.lpa = [eloc(1).X eloc(1).Y eloc(1).Z];
+% 	elp.rpa = [eloc(2).X eloc(2).Y eloc(2).Z];
+% 	elp.nasion = [eloc(3).X eloc(3).Y eloc(3).Z];
+% 
+% 	elp.x=[eloc(4:end-1).X];
+% 	elp.y=[eloc(4:end-1).Y];
+% 	elp.z=[eloc(4:end-1).Z];
+% 
+% 	Lx = elp.lpa(1);
+% 	Ly = elp.lpa(2);
+% 	Nx = elp.nasion(3); % distance from the ctf origin to nasion
+% 
+% 	cs = - Lx / sqrt( Lx*Lx + Ly*Ly );
+% 	sn =   Ly / sqrt( Lx*Lx + Ly*Ly );
 
-
-	polhemus_filename = '/raid/sensors/abc_4-26-11_run1';
-	C = read_polhemus_data(polhemus_filename);
-
-	for iEloc = 1:length(C{1})
-		eloc(iEloc).X = C{2}(iEloc)/100;
-		eloc(iEloc).Y = C{1}(iEloc)/100;
-		eloc(iEloc).Z = C{3}(iEloc)/100;
-		%    [xt, yt, zt]=sph2cart(abs(randn*pi/2),abs(randn*pi/4),.1);
-		%    eloc(iEloc).X = xt;
-		%    eloc(iEloc).Y = yt;
-		%    eloc(iEloc).Z = zt;
-	end
-
-
-	elp.lpa = [eloc(1).X eloc(1).Y eloc(1).Z];
-	elp.rpa = [eloc(2).X eloc(2).Y eloc(2).Z];
-	elp.nasion = [eloc(3).X eloc(3).Y eloc(3).Z];
-
-	elp.x=[eloc(4:end-1).X];
-	elp.y=[eloc(4:end-1).Y];
-	elp.z=[eloc(4:end-1).Z];
-
+    elp = eloc;
 	Lx = elp.lpa(1);
 	Ly = elp.lpa(2);
 	Nx = elp.nasion(3); % distance from the ctf origin to nasion
 
 	cs = - Lx / sqrt( Lx*Lx + Ly*Ly );
 	sn =   Ly / sqrt( Lx*Lx + Ly*Ly );
+
 
 	% convert elp c.f. (CTF) to subject centered c.f. (NEUROMAG), i.e. LPA on -x, RPA on x, NAS
 	% on y, origin on LPA - RPA line, but only approx between LPA and RPA.
@@ -113,7 +111,7 @@ function elp2fiff_jma()
 
 	% get the main measurement pars with some convenient defaults
 	%nchan = elp.sensorN - 1;
-	nchan = length(eloc) - 4;
+	nchan = numel(elp.x);
 	sfreq = 1;
 	data.info.sfreq = sfreq;
 	data.info.highpass = .1;
@@ -257,15 +255,12 @@ function elp2fiff_jma()
 	% signal = sqrt( var( epochs ) );
 	%
 	% finally, write the whole datastructure into the FIFF formated file
-	[ path, name ] = fileparts( elpfile );
-
 	if( writeflag == 1 )
-		fname = strcat( name, '.fif' );  % use datafile name as output name
 		try
-			fiff_write_evoked( [path '/' fname], data);
+			fiff_write_evoked( write_to_filename, data);
 			%       sprintf('mv %s %s', fname, [path '/' fname])
 			%       system(sprintf('mv %s %s', fname, [path '/' fname]));
-			fprintf( 'Wrote %s\n', [path '/' fname]);
+			fprintf( 'Wrote %s\n', write_to_filename);
 		catch
 			error( me, '%s', mne_omit_first_line( lasterr ) );
 		end
@@ -290,7 +285,7 @@ function elp2fiff_jma()
 		%   snr = 1 ./ ( signal);
 		snr = ones(nchan,1);
 
-		fig = figure( 'NumberTitle', 'off', 'Name', name, 'Position', [ 100,100, 512,512 ], 'Color', [ 0 0.5 1 ] );
+		fig = figure( 'NumberTitle', 'off', 'Name', write_to_filename, 'Position', [ 100,100, 512,512 ], 'Color', [ 0 0.5 1 ] );
 		scatter3( 0, 0, 0, 80, 'b', 'filled' ), hold;
 		scatter3( lpa.x, lpa.y, lpa.z, 120, 'g', 'filled' ),
 		scatter3( rpa.x, rpa.y, rpa.z, 120, 'g', 'filled' ),

@@ -1,4 +1,4 @@
-function read_polhemus_data()
+function out = read_polhemus_data(polhemus_filename, write_to_filename)
 % Works in conjunction with fiff_write_dig_file from mne suite.
 % Reads berkeley's polhemus (BP) system with megDraw program.
 % BP will record a line every time a button is pressed.
@@ -11,8 +11,13 @@ function read_polhemus_data()
 % 1) mne_transform_points, to produce XXX.hpts file.
 % 2) mne_analyze to enter digitizer points and produce transform matrix, XXX-trans.fif
 
-filename = 'a.fif';
-polhemus_filename = '/raid/sensors/abc_4-26-11_run1_backup';
+% Requires path to fiff_* files
+% E:\raid\MRI\toolbox\mne\share\matlab
+
+
+
+%filename = 'asdlkfjasdf.fif';
+%polhemus_filename = '/raid/sensors/abc_4-26-11_run1_backup';
 pol = process_raw_polhemus(polhemus_filename);
 
 R = [0 1 0;
@@ -26,8 +31,15 @@ eeg = pol.xyz*R;
 hpi = [];
 eegref=[];
 extra = [];
-fiff_write_dig_file(filename,lpa,nas,rpa,hpi,eeg,eegref,extra);
-system(sprintf('mv %s %s', filename, ['/raid/sensors/temp/' filename]));
+if nargin > 1
+    fiff_write_dig_file(write_to_filename,lpa,nas,rpa,hpi,eeg,eegref,extra);
+    if isequal(getenv('os'), 'Windows_NT')
+        system(sprintf('move %s %s', filename, write_to_filename));
+    else
+        system(sprintf('mv %s %s', filename, write_to_filename));
+    end
+end
+out = pol;
 
 function out = process_raw_polhemus(in)
 fid = fopen(in);
