@@ -1,5 +1,5 @@
 close all;
-% clearvars -regexp .* -except subj_id i_sub s_subj t_svd n_spokes n_rings n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
+% clearvars -regexp .* -except subj_id i_sub s_subj t_svd n_spoke n_ring n_patch a_source_accounted noise_level f roi_area dot_prod_1 stat
 try, rmappdata(0, 'fwd'); end
 addpath('./lib'); add_lib();
 sc_load_fieldnames();
@@ -12,8 +12,8 @@ dirs.eeg         = fullfile(dirs.subj, [subj_id '_EEG']);
 dirs.bem         = fullfile(dirs.eeg, 'bem');
 dirs.mne         = fullfile(dirs.eeg, '_MNE_');
 dirs.berkeley    = fullfile(dirs.data, 'Berkeley', subj_id);
-fwd_filename     = fullfile(dirs.mne, [subj_id '-fwd.fif']);
-sph_fwd_filename = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
+fwd_filename     = fullfile(dirs.mne, [subj_id '_fwd_sol_with_042611_meas.fif']);
+% sph_fwd_filename = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
 
 %% Environment preparations
 if isempty(getappdata(0, 'fwd'))
@@ -21,7 +21,8 @@ if isempty(getappdata(0, 'fwd'))
   disp('saving root variables');
   if ~exist('fwd', 'var')
     fwd=mne_read_forward_solution(fwd_filename);
-    sph_fwd = mne_read_forward_solution(sph_fwd_filename);
+    sph_fwd = '';
+    %sph_fwd = mne_read_forward_solution(sph_fwd_filename);
   end
   fwdtrue = fwd;
   setappdata(0, 'fwd',        fwd);
@@ -41,16 +42,11 @@ VEPavg   = NaN(n_patch, n_chan, n_time);
 
 %% Define Session
 rs = retino_session;
-
 rs.dirs = dirs;
 rs.subj_id = subj_id;
 rs.rois = s_rois;
-
-rs.design.n_spokes = n_spokes;
-rs.design.n_rings  = n_rings;
-
+rs.design       = design;
 rs.a_patch      = a_patch;
-rs.data.mean    = VEPavg;
 rs.a_chan       = a_chan;
 rs.a_time       = a_time;
 rs.fwd          = fwd;
@@ -64,48 +60,106 @@ rs.h.main.fig   = h_main;
 clear -regexp fwd
 
 rs.interpolate_fwd();
+rs.fill_fv();
 r_pre                = retino_preproc(rs);
 % cfg_corner_vert.type = 'patch';
 % rs.fill_default_corner_vert(cfg_corner_vert);
-rs.fill_fv();
 
 %% Initialize patches
 tic;
 rs.init_session_patch();
 rp = rs.retinoPatch;
 rs.fill_rois_area();
+
+%% Initialize and Process Data
+clc;
+clear rdata ans; rs.data = [];
+rdata = retino_data(rs);
+rs.data = rdata;
+rdata.dir = subj_data.dir;
+rdata.type = subj_data.type;
+rdata.cfg.process_list = subj_data.process_list;
+rdata.load_kernel();
+rdata.process_data();
+rdata.current = rdata.mean(:,:,:,125:275);
+rdata.current = rdata.misc{1}(:,:,:,136:end);
+
 %% Make Interactive Figure
 figure(rs.h.main.fig); close(rs.h.main.fig);
 clear rplot;
-rplot       = retino_plotter;
+rplot       = retino_plotter(rs);
+cfg.h_main  = rs.h.main.fig;
 cfg.rs      = rs;
 cfg.a_patch = [];%rs.a_patch;
 rplot.cfg   = cfg;
 rplot.plot_flat;
+% rplot.plot_flat_rois;
 
 %% Define Simulation parameters
-% rs.a_kern             = [1 2 3 4 5];
-toggle_simdata          = 1;
-if isequal(toggle_simdata, 1)
-  cfg_sim      = p.cfg_sim;
-  cfg_sim.rs   = rs;                    %  Define simulation configuration
-  r_sim        = retino_sim(cfg_sim);   % Construct simulation object
-  VEPavg_sim   = r_sim.make_sim_data(); % Do Simulation
-  rs.data.mean = VEPavg_sim;            % fill rs.data.mean with simulated data
-  V            = rs.sim.true.timefcn;   % fill V with true V
-  clear VEP*
+% toggle_simdata          = 0;
+% if isequal(toggle_simdata, 1)
+%   cfg_sim      = p.cfg_sim;
+%   cfg_sim.rs   = rs;                    %  Define simulation configuration
+%   r_sim        = retino_sim(cfg_sim);   % Construct simulation object
+%   rdata.mean   = r_sim.make_sim_data(); % Do Simulation
+% %   rdata.mean   = randn(size(rdata.mean));
+%   V            = rs.sim.true.timefcn;   % fill V with true V
+%   clear VEP*
+% end
+%% Do source estimation
+figure(1); clf(1);
+try, delete(findobj(1, 'tag', 'svd')); end;
+s_patch_def = {'left'  'up' 'outer' 'right' 'down'  'inner'};
+for i_patch_def = 1:numel(s_patch_def)
+    subplot(2,3,i_patch_def); hold on;
+    pdef = s_patch_def{i_patch_def};
+    rs.a_patch = patch_def.(pdef);
+    rs.a_source = [1 2 3];
+    rs.fill_session_patch_Vdata;
+    rs.fill_ctf('meg', rs.a_patch);
+    % rs.fill_session_patch_timefcn;
+    % rs.fill_Femp('meg', rs.a_patch);
+    % % rs.fill_ctf_Femp(rs.a_patch, 'meg');
+    % rs.fill_session_patch_timefcn_emp;
+    x = linspace(0, 406*1000/541, 406);
+    plot(x, rs.ctf', 'linewidth', 2);
+    tctf{i_patch_def} = rs.ctf';
+    title(pdef)
+%     
+%     d=rdata.current(patch_def.(pdef),:,2,:);
+%     n_1 = size(d,1); n_2 = size(d,2); n_3 = size(d,3); n_4 = size(d,4);
+%     dd=reshape(d, n_1*n_2, n_4);
+%     [u,s,t]=svd(dd,0);
+%     uu = reshape(u, n_1, n_2, n_4);
+%     if i_patch_def == 2
+%         a_patch = rs.a_patch;
+%         figure(100+i_patch_def); clf(100+i_patch_def);
+%         for i_patch = 1:numel(a_patch)
+%             if i_patch<49
+%                 hold on;
+%                 i_comp = 1;
+%                 subplot(8,6,i_patch);  hold on;
+%                 f = rp(1,a_patch(i_patch)).F.mean.norm';        f = f - min(f);        f = f/max(f);
+%                 plotlayout2(f, 128, [0 0]);
+%                 suu = squeeze(uu(i_patch,:,i_comp));        suu = (suu-min(suu));        suu = suu/max(suu);
+%                 plotlayout2(suu, 128, [50 0]);
+%                 title(num2str(a_patch(i_patch)));
+%                 xlim([-25 75])
+%             end
+%         end
+%         pause
+%     end
+%     
+%     figure(1);
+%     subplot(2,3,i_patch_def);
+%     tt = t(:,1:3);
+%     s1=tt(:,1)\tctf{i_patch_def}(:,1);
+%     s2=tt(:,2)\tctf{i_patch_def}(:,2);
+%     s3=tt(:,3)\tctf{i_patch_def}(:,3);
+%     ttt = tt.*repmat([s1 s2 s3], size(tt,1), 1);
+%     plot(ttt, '--', 'tag', 'svd')
 end
-rs.a_source = a_source_accounted;
-rs.fill_session_patch_Vdata;
-
-rs.fill_ctf(rs.a_patch, 'meg');
-rs.fill_session_patch_timefcn;
-rs.fill_Femp(rs.a_patch, 'meg');
-% rs.fill_ctf_Femp(rs.a_patch, 'meg');
-rs.fill_session_patch_timefcn_emp;
-continue;
-disp('11111111111111111111111111111111111111111111111');
-rs.sim.i_sub = i_sub;
-rplot.plot_flat_rois();
-stat(i_sub, :) = rs.sim.patch_stat;
+legend('v1', 'v2', 'v3', 'c1', 'c2', 'c3')
 return
+%%
+

@@ -33,8 +33,8 @@ g.list = s_subj;
 
 
 % Stimulus Settings
-n_spokes = 24; % needs > 4 (Left, right, up, down)
-n_rings  = 4;
+n_spoke = 24; % needs > 4 (Left, right, up, down)
+n_ring  = 4;
 
 % Acquisition Settings
 meg_chan           = 1:128;    % all MEG
@@ -65,7 +65,7 @@ cfg_sim.external_amplitude = 0.0;
 
 
 
-expt = set_field( 'n_spokes', 'n_rings', 'meg_chan', 'eeg_chan', 'ref_chan', ...
+expt = set_field( 'n_spoke', 'n_ring', 'meg_chan', 'eeg_chan', 'ref_chan', ...
                 'a_patch', 'a_source', 'a_source_accounted', 'a_kern', ...
                 'a_time', 'a_chan', 'a_days',...
                 's_rois', ...

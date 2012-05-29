@@ -13,7 +13,7 @@ classdef retino_curve < handle
             o.curveset = cs;
         end
         function o = draw_curve(o)
-            o.sketch([],[], 'init', cs.rs.h.main.fig, o)
+            o.sketch([],[], 'init', o.curveset.rs.h.main.fig, o)
         end
         function o = set_curve(o)
             cs = o.curveset;

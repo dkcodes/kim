@@ -1,8 +1,9 @@
-function  process_polhemus_elec
+function  process_polhemus_elec(subj_id)
 
   dirs.data      = getenv('ANATOMY_DIR');
   dirs.fs4_data  = fullfile(dirs.data, 'FREESURFER_SUBS');
-  subj_dirs = dir(fullfile(dirs.fs4_data, 'skeri*'));
+  %subj_dirs = dir(fullfile(dirs.fs4_data, 'skeri*'));
+  subj_dirs = dir(fullfile(dirs.fs4_data, ['*' subj_id]));
   subj_dirs
   dirs.pwd = pwd;
   for i_dirs = 1:numel(subj_dirs)

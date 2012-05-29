@@ -10,12 +10,12 @@ function obj = calculate_forward_hi(obj)
 
 
     switch obj.hemi
-        case 'L'
+        case {'L', 'lh'}
             src = fwd.src(1);
             nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
             aa = (rs.a(a_vert)-1)*3;
             rr = src.rr(a_vert,:);
-        case 'R'
+        case {'R', 'rh'}
             src = fwd.src(2);
             nn = src.nn(a_vert,:).*repmat(src.source_weight(a_vert,:),[1 3]);
             aa = (fwd.src(1).nuse + int32(rs.b(a_vert)-1))*3;

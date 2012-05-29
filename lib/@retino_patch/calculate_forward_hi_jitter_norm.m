@@ -10,7 +10,7 @@ function obj = calculate_forward_hi_jitter_norm(obj)
 	Rz = @(x) [cos(x) -sin(x) 0; sin(x) cos(x) 0; 0 0 1];
 	alpha = 0; 
 	switch obj.hemi
-		case 'L'
+		case {'L', 'lh'}
 			src = fwd.src(1);
 			nn=zeros(numel(a_vert),3);
 			for i_vert = 1:numel(a_vert)
@@ -19,7 +19,7 @@ function obj = calculate_forward_hi_jitter_norm(obj)
 				nn(i_vert,:) = src.nn(ai_vert,:)*R*src.source_weight(ai_vert,:);
 			end
 			aa = (rs.a(a_vert)-1)*3;
-		case 'R'
+		case {'R', 'rh'}
 			src = fwd.src(2);
 			nn=zeros(numel(a_vert),3);
 			for i_vert = 1:numel(a_vert)

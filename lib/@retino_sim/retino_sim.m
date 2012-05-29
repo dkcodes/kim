@@ -141,7 +141,11 @@ classdef retino_sim
                     t0 = 25;
                     ext_1= zeros(size(rs.a_time)); ext_1(t0:t0+numel(time_windows)-1) = sin(2*pi*1*time_windows);
                     ext_2= zeros(size(rs.a_time)); ext_2(t0:t0+numel(time_windows)-1) = sin(2*pi*2*time_windows);
-                    external_signals(1, all_chan, 1, :)  = e_rp(1).F.mean.norm(all_chan)*ext_1 + e_rp(2).F.mean.norm(all_chan)*ext_2;
+                    if ~isempty(e_rp)
+                        external_signals(1, all_chan, 1, :)  = e_rp(1).F.mean.norm(all_chan)*ext_1 + e_rp(2).F.mean.norm(all_chan)*ext_2;
+                    else
+                        external_signals(1, all_chan, 1, :) = zeros(1, numel(all_chan), 1, numel(ext_1));
+                    end
                     VEPavg_sim(ai_patch, all_chan, i_kern, :) = VEPavg_sim(ai_patch, all_chan, i_kern, :) + external_amplitude*external_signals;
                     if isequal(ref_chan, 'average')
                         % referencing to average

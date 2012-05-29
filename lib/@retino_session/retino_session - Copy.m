@@ -471,9 +471,9 @@ classdef retino_session < handle
 			end
 			function fill_default_corner_vert(rs, cfg)
 				rois = rs.rois.data;
-				n_spokes    = rs.design.n_spokes;
-				m           = rs.design.n_rings;
-				n           = n_spokes/4;
+				n_spoke    = rs.design.n_spoke;
+				m           = rs.design.n_ring;
+				n           = n_spoke/4;
 				default_corner_vert = rs.default_corner_vert;
 				default_corner_vert.patch = [];
 				for i_rois = 1:numel(rois)
@@ -523,7 +523,7 @@ classdef retino_session < handle
 
 					for i_u = 1:n
 						for i_v = 1:m
-							lat_ind(i_v, i_u) = i_u + (i_v-1)*n_spokes;
+							lat_ind(i_v, i_u) = i_u + (i_v-1)*n_spoke;
 						end
 					end
 					lat_ind = lat_ind + offset;

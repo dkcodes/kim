@@ -49,18 +49,18 @@
 %% statistics
 % load('E:\raid\MRI\toolbox\kim\in\param\paper_svd_statistics_parietal\info.mat')
 % load('E:\raid\MRI\toolbox\kim\out\paper_svd_calculate_area\mat\patch_areas.mat')
-n_spokes = 16; % needs > 4 (Left, right, up, down)
-n_rings  = 6;
-n_patch  = n_spokes*n_rings;
+n_spoke = 16; % needs > 4 (Left, right, up, down)
+n_ring  = 6;
+n_patch  = n_spoke*n_ring;
 
-patch_def.all   = [1:n_spokes*n_rings];
-patch_def.right = repmat((1:n_spokes/2)',[1 n_rings])+repmat([0:n_rings-1]*n_spokes,[n_spokes/2 1]);
+patch_def.all   = [1:n_spoke*n_ring];
+patch_def.right = repmat((1:n_spoke/2)',[1 n_ring])+repmat([0:n_ring-1]*n_spoke,[n_spoke/2 1]);
 patch_def.right = patch_def.right(:)';
 patch_def.left  = setdiff(patch_def.all, patch_def.right);
-patch_def.down  = patch_def.right+n_spokes/4;
+patch_def.down  = patch_def.right+n_spoke/4;
 patch_def.up    = setdiff(patch_def.all, patch_def.down);
-patch_def.outer = 1:n_spokes*n_rings/2;
-patch_def.inner = setdiff(1:n_spokes*n_rings, 1:n_spokes*n_rings/2);
+patch_def.outer = 1:n_spoke*n_ring/2;
+patch_def.inner = setdiff(1:n_spoke*n_ring, 1:n_spoke*n_ring/2);
 
 patch_def.LV = intersect(patch_def.right, patch_def.up);  % Left Hemi, Ventral
 patch_def.LD = intersect(patch_def.right, patch_def.down);

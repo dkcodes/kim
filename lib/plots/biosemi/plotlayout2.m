@@ -32,14 +32,19 @@ else
 end
 fclose(fid);
 if nargin > 2
-    if shift == 1
-        x = x + max(x*2.5);
-    elseif shift == 2
-        x = x + max(x*5);
-        w = w*.85;
-    elseif shift == 3
-        x = x + max(x*5);
-        w = w*.95;
+    if numel(shift)==1
+        if shift == 1
+            x = x + max(x*2.5);
+        elseif shift == 2
+            x = x + max(x*5);
+            w = w*.85;
+        elseif shift == 3
+            x = x + max(x*5);
+            w = w*.95;
+        end
+    else
+        x = x+shift(1);
+        y = y+shift(2);
     end
 end
 
@@ -49,9 +54,8 @@ else
     %     p.h.s=scatter2sc(x, y, w);
     %     set(p.h.s, 'sizedata', 36);
     if ~isempty(w)
-        [Xq Yq] = meshgrid(-30:80, -30:30);
-        
-        [Xq Yq] = meshgrid(-60:20, -60:20);
+        [Xq Yq] = meshgrid(min(x):max(x), min(y):max(y));
+%         [Xq Yq] = meshgrid(-60:20, -60:20);
         F = TriScatteredInterp(x,y,w');
         Vq = F(Xq, Yq);
         [junk, p.h.s]=contour(Xq, Yq, Vq, 'fill', 'on');

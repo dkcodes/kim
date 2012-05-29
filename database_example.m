@@ -19,7 +19,7 @@ for i = 1:1
   e
 end
 
-db_cmd = 'select * from test where name like "%thom%" AND name like "%n_spokes = 4%"';
+db_cmd = 'select * from test where name like "%thom%" AND name like "%n_spoke = 4%"';
 % db_cmd = 'select * from test';
 e = exec(conn, db_cmd);
 try

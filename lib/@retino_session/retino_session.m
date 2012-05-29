@@ -1,8 +1,11 @@
 classdef retino_session < handle
-    properties (SetObservable = true)
+    properties 
         subj_id
         retinoPatch
         external_patch
+        
+        curveset
+        patchset
         
         a_patch
         a_source
@@ -44,7 +47,7 @@ classdef retino_session < handle
     
     methods
         function obj =  retino_session()
-            %	  Define the nodes and nodesAll windows for inflated lh
+            %Define the nodes and nodesAll windows for inflated lh
             % fv = [];
             % [fv.vertices,fv.faces]=mne_read_surface('/raid/MRI/anatomy/FREESURFER_SUBS/DK_fs4/surf/lh.inflated');
             % obj.lh.fv = fv;
@@ -67,7 +70,7 @@ classdef retino_session < handle
             % k = faces((ismember(faces(:,1),obj.rh.nodes(:,1))) | (ismember(faces(:,2),obj.rh.nodes(:,1))),:);
             % faces = unique(k,'rows');         nSeg = size(faces,1);         obj.rh.segments = [(1:nSeg)' faces];
         end  %k
-        function obj = fill_fv(obj);
+        function obj = fill_fv(obj)
             fv = [];
             [fv.vertex,fv.face]=mne_read_surface(fullfile(obj.dirs.subj, 'surf', 'lh.orig'));
             obj.lh.orig.fv = fv;

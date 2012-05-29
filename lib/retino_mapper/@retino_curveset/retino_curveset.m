@@ -98,7 +98,10 @@ classdef retino_curveset < handle
                 f = fv(i_type,:);
                 index = f(find(m==min(m),1));
             else
-                margin = 5e-2;
+                % The margin prevents sources from other side of V/D
+                % boudnary from being picked when the edge values are 0 or
+                % 2*pi etc.
+                margin = 5e-3;
                 i_e = fv(:,4)>=e0 & fv(:,4)<=e1;
                 i_a = fv(:,5)>=a0+margin & fv(:,5)<=a1-margin;
                 this.type = o.roi_2_binary(s_roi, region_str);
@@ -117,6 +120,7 @@ classdef retino_curveset < handle
         end
         function o = gui(o)
             rs = o.rs;
+            figure(rs.h.main.fig);
             s_roi = rs.rois.name;
             n_button = 25;
             pv=[repmat(.01, n_button, 1) linspace(.9,0,n_button)' repmat(.1, n_button, 1) repmat(.8/n_button, n_button, 1)];
@@ -130,13 +134,13 @@ classdef retino_curveset < handle
             p.bh(5)=uicontrol('unit', 'norm', 'position', pv(5,:), 'string', '2  Toggle ROI', 'callback', {@o.key_fcn, o, '2'});
             p.bh(6)=uicontrol('unit', 'norm', 'position', pv(6,:), 'string', '3  Toggle Nodes', 'callback', {@o.key_fcn, o, '3'});
             p.bh(7)=uicontrol('unit', 'norm', 'position', pv(7,:), 'string', '4  Toggle Curve', 'callback', {@o.key_fcn, o, '4'});
-            
+            p.bh(8)=uicontrol('unit', 'norm', 'position', pv(8,:), 'string', '5  Toggle Patch', 'callback', {@o.key_fcn, o, '5'});
             eh_pn = {'unit', 'style', 'callback',           'backgroundcolor'};
             eh_pv = {'norm', 'edit',  {@o.key_fcn, o, '/'}, 'w'};
-            p.eh(1)=uicontrol(eh_pn, eh_pv); set(p.eh(1),'position', [pv(8,1:2)  .07 pv(8,4)] );
-            p.bh(8)=uicontrol('unit', 'norm', 'position', [pv(8,1)+.075 pv(8,2)  .025 pv(8,4)], 'string', 'Set', 'callback', {@o.key_fcn, o, 'set_region'});
-            p.eh(2)=uicontrol(eh_pn, eh_pv); set(p.eh(2),'position', [pv(9,1:2)  .07 pv(9,4)] );
-            p.eh(3)=uicontrol(eh_pn, eh_pv); set(p.eh(3),'position', [pv(10,1:2) .07 pv(10,4)] );
+            p.eh(1)=uicontrol(eh_pn, eh_pv); set(p.eh(1),'position', [pv(9,1:2)  .07 pv(8,4)] );
+            p.bh(8)=uicontrol('unit', 'norm', 'position', [pv(8,1)+.075 pv(9,2)  .025 pv(8,4)], 'string', 'Set', 'callback', {@o.key_fcn, o, 'set_region'});
+            p.eh(2)=uicontrol(eh_pn, eh_pv); set(p.eh(2),'position', [pv(10,1:2)  .07 pv(9,4)] );
+            p.eh(3)=uicontrol(eh_pn, eh_pv); set(p.eh(3),'position', [pv(11,1:2) .07 pv(10,4)] );
             
             p.slider =uicontrol('unit', 'norm', 'style', 'slider', 'sliderstep', [1 1], 'min', 1, 'max', 2, 'value', 1, ...
                 'position', [.3, pv(1,2) .4 pv(1,4)], 'callback', {@o.key_fcn, o, '|'});
@@ -154,13 +158,16 @@ classdef retino_curveset < handle
                     curve(i_curve).(var{i_var}) = o.curve(i_curve).(var{i_var});
                 end
             end
-            save(fullfile(save_path, 'curveset_data.mat'), 'curve');
+            flatvert = o.flatvert;
+            save(fullfile(save_path, 'curveset_data.mat'), 'curve', 'flatvert');
         end
         function o = load(o)
             load_path = o.rs.dirs.berkeley;
-            load(fullfile(load_path, 'curveset_data.mat'), 'curve');
-            var = {'region', 'type', 'val', 'coord', 'h', 'hemi'};
+            load(fullfile(load_path, 'curveset_data.mat'), 'curve', 'flatvert');
             o.curve = retino_curve(o);
+            try, o.flatvert = flatvert; end
+            
+            var = {'region', 'type', 'val', 'coord', 'h', 'hemi'};
             for i_curve = 1:numel(curve)
                 o.curve(i_curve) = retino_curve(o);
                 for i_var = 1:numel(var)
@@ -230,6 +237,8 @@ classdef retino_curveset < handle
                         vis_toggle = false;
                     end
                     tog_vis(h_retino_curve)
+                case {'5'}
+                    tog_vis(o.rs.h.patch.all)
                 case {'|' 'slider'} % Changing slider
                     n_curve = numel(o.curve);
                     if n_curve < 1

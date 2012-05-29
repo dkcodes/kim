@@ -14,7 +14,16 @@ classdef retino_preproc < handle
             end
 			o.proc_flat_vert();
 			o.proc_source_weight();
-% 			o.proc_default_corner_vert();
+            if isfield_recursive(rs, 'options', 'patch_boundary', 'type')
+                if isequal(rs.options.patch_boundary.type, 'curve')
+                    o.proc_default_curve();
+                    o.rs.fill_patchset;
+                elseif isequal(rs.options.patch_boundary.type, 'corner')
+                    o.proc_default_corner_vert();
+                else
+                    error('Unknown patch_boundary.type defined in rs.options.');
+                end	
+            end
         end
 		function o = proc_flat_vert(o)
 			o.flat.status = o.get_status_flat(o.rs);
@@ -39,6 +48,32 @@ classdef retino_preproc < handle
 				setappdata(0, 'fwd',        fwd);
 			end
 		end
+        function o = proc_default_curve(o)
+			status = o.get_status_default_curveset(o.rs);
+			if isequal(status.file, 0)
+				figure(o.rs.h.main.fig); close(o.rs.h.main.fig);
+				rplot = retino_plotter;
+				cfg.rs = o.rs;
+				cfg.aPatch = [];%rs.aPatch;
+				rplot.cfg = cfg;
+                rplot.plot_flat;
+                rplot.plot_flat_retino;
+                try, set(o.rs.h.retino.all, 'visible', 'off'); end
+				set(o.cfg.h_main, 'Position', [2   100   704   333])
+				rplot.plot_flat_rois();
+				cfg.n_spoke = 4; cfg.n_ring = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');
+				o.rs.fill_default_corner_vert(cfg);
+			end
+			if isequal(status.var, 0)
+                figure(o.rs.h.main.fig);
+                delete(findobj(o.rs.h.main.fig, 'type', 'uicontrol'));
+                set(o.rs.h.main.fig, 'userdata', []);
+                set(gcf, 'keypressfcn', []);
+                set(gcf, 'WindowButtonDownFcn', []);
+                set(gcf, 'WindowKeyPressFcn', []);
+                o.rs.curveset = retino_curveset(o.rs);
+			end
+        end
 		function o = proc_default_corner_vert(o)
 			status = o.get_status_default_corner_vert(o.rs);
 			if isequal(status.file, 0)
@@ -52,7 +87,7 @@ classdef retino_preproc < handle
                 try, set(o.rs.h.retino.all, 'visible', 'off'); end
 				set(o.cfg.h_main, 'Position', [2   100   704   333])
 				rplot.plot_flat_rois();
-				cfg.n_spokes = 4; cfg.n_rings = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');
+				cfg.n_spoke = 4; cfg.n_ring = 4; cfg.type = input('type "patch" for rebuilding patch only : ', 's');
 				o.rs.fill_default_corner_vert(cfg);
 			end
 			if isequal(status.var, 0)
@@ -147,7 +182,7 @@ classdef retino_preproc < handle
 	end
 	methods (Static)
 		function status = get_status_flat(rs)
-			status.var = ~isempty(rs.lh) && ~isempty(rs.rh) ;
+            status.var = isfield_recursive(rs, 'lh', 'flat') && ~isempty(rs.lh) && isfield_recursive(rs, 'rh', 'flat') && ~isempty(rs.rh);
 			status.file = exist(fullfile(rs.dirs.berkeley, 'flatverts.mat'), 'file');
 		end
 		function status = get_status_source_weight(rs)
@@ -163,9 +198,9 @@ classdef retino_preproc < handle
 			status.var = isfield_recursive(rs, 'fmri') && ~isempty(rs.fmri);
 			status.file = exist(fullfile(rs.dirs.berkeley, 'fmri.mat'), 'file');
         end
-        function status = get_status_curveset(rs)
-			status.var = isfield_recursive(rs, 'fmri') && ~isempty(rs.fmri);
-			status.file = exist(fullfile(rs.dirs.berkeley, 'fmri.mat'), 'file');
+        function status = get_status_default_curveset(rs)
+			status.var = isfield_recursive(rs, 'curveset') && ~isempty(rs.curveset);
+			status.file = exist(fullfile(rs.dirs.berkeley, 'curveset_data.mat'), 'file');
 		end
 	end
 end

@@ -8,12 +8,12 @@ classdef dartboard_plotter < handle
             obj.pat.text = 'off';
             obj.a_patch = a_patch;
         end
-        function obj = make_dartboard(obj, n_rings, n_spokes)
+        function obj = make_dartboard(obj, n_ring, n_spoke)
             a_patch = obj.a_patch;
             r = 100;
-            angles = linspace(2*pi+pi/2, 0+pi/2,  n_spokes+1);
-            angles(n_spokes+1) = [];
-            eccentricities = linspace(r, 60, n_rings+1);
+            angles = linspace(2*pi+pi/2, 0+pi/2,  n_spoke+1);
+            angles(n_spoke+1) = [];
+            eccentricities = linspace(r, 60, n_ring+1);
             
             figure(randi(1203813))
             count = 1;
@@ -25,11 +25,11 @@ classdef dartboard_plotter < handle
             end
             axis square equal
             set(gca, 'visible', 'off')
-            for i = 1:n_rings*n_spokes
-                if isempty(intersect(i, n_spokes:n_spokes:n_spokes*n_rings))
-                    corners = [i i+1 i+n_spokes+1 i+n_spokes];
+            for i = 1:n_ring*n_spoke
+                if isempty(intersect(i, n_spoke:n_spoke:n_spoke*n_ring))
+                    corners = [i i+1 i+n_spoke+1 i+n_spoke];
                 else
-                    corners = [i i-n_spokes+1 i+1 i+n_spokes];
+                    corners = [i i-n_spoke+1 i+1 i+n_spoke];
                 end
                 pat(i).corners = corners;
                 pat(i).x = x(corners);
@@ -53,7 +53,7 @@ classdef dartboard_plotter < handle
                 else
                     colors = [1 1 1];
                 end
-                if isempty(intersect(ai_patch, n_spokes:n_spokes:n_spokes*n_rings))
+                if isempty(intersect(ai_patch, n_spoke:n_spoke:n_spoke*n_ring))
                     count = count + 1;
                 end
                 fv = pat(ai_patch).fv;

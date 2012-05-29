@@ -3,8 +3,8 @@ classdef retino_plotter < handle
         cfg
     end %k
     methods
-        function o=retino_plotter(h_main)
-            cfg.h_main = h_main;
+        function o=retino_plotter(rs)
+            o.cfg.h_main = rs.h.main.fig;
         end %k
         function update(o)
             rs = o.cfg.rs;
@@ -21,7 +21,6 @@ classdef retino_plotter < handle
         function plot_flat(o)
             rs = o.cfg.rs;
             rp = rs.retinoPatch;
-            rs.h.main.fig = cfg.h_gui;
             h.fig = rs.h.main.fig;
             figure(h.fig); clf(h.fig);
             
@@ -269,6 +268,36 @@ classdef retino_plotter < handle
             end
             setappdata(h.fig, 'rs', rs);
         end %k
+        function plot_patch(o)
+            rs = o.cfg.rs;
+            rp = rs.retinoPatch;
+            h.fig = o.cfg.h_main;
+            a_patch = o.cfg.a_patch;
+            a_source = rs.a_source;
+            try delete(rs.h.patch.all); end;
+            count = 1;
+            for i_patch = 1:numel(a_patch)
+                ai_patch = a_patch(i_patch);
+                hemi = rp(1, ai_patch).hemi;
+                switch hemi
+                    case {'L', 'lh'}
+                        subplot(1,2,1)
+                    case {'R' 'rh'}
+                        subplot(1,2,2)
+                    otherwise
+                        error('Unknown hemi definition in retino patch');
+                end
+                fv = rs.(hemi).flat.vert_full;
+                for i_source = 1:numel(a_source)
+                    ai_source = a_source(i_source);
+                    trp = rp(ai_source, ai_patch);
+                    ind = trp.hiResVert;
+                    x = fv(ind,2); y = fv(ind,3);
+                    rs.h.patch.all(count) = plot(x,y,'.', 'color', rand(1,3), 'tag', 'retino_patch');
+                    count = count + 1;
+                end
+            end
+        end
         function plot_3D(o)
             figure(11223344);
             rs = o.cfg.rs;
