@@ -34,12 +34,13 @@ classdef retino_fmri < handle
             vw = loadCorAnal(vw, 'E:\raid\MRI\anatomy\BerkeleyEEGMEGRetino\DK\DK_DATA\Gray\Blurred3mm\corAnal.mat');
             o.mrv.coord = vw.coords;
             o.mrv.raw.ph = vw.ph;
+            o.mrv.raw.amp = vw.amp;
             
             close(h_vw)
             cd(old_wd);
         end
         function o = make_retino_data(o)
-            data_type = 'ph';
+            s_data_type = {'ph' 'amp'};
             
             msh = o.msh;
             o.calc_coord();
@@ -49,21 +50,25 @@ classdef retino_fmri < handle
                 hemi = s_hemi{i_hemi};
                 indices.(hemi) = o.coord_2_indices(o.coord, hemi);
             end
-            
-            for i_hemi = 1:numel(s_hemi)
-                hemi = s_hemi{i_hemi};
-                for i_data = 1:numel(o.mrv.raw.(data_type))
-                    o.mrv.(data_type).(hemi){i_data} = o.mrv.raw.(data_type){i_data}(indices.(hemi));
+            for i_data_type = 1:numel(s_data_type)
+                data_type = s_data_type{i_data_type};
+                for i_hemi = 1:numel(s_hemi)
+                    hemi = s_hemi{i_hemi};
+                    for i_data = 1:numel(o.mrv.raw.(data_type))
+                        o.mrv.(data_type).(hemi){i_data} = o.mrv.raw.(data_type){i_data}(indices.(hemi));
+                    end
+                    % temporary looks like I'm doing something averaging
+                    % between different phase runs to be added at the end
+                    o.mrv.(data_type).(hemi){7} = ...
+                        (o.mrv.raw.(data_type){2}(indices.(hemi)) + ...
+                        -o.mrv.raw.(data_type){3}(indices.(hemi)) + ...
+                        o.mrv.raw.(data_type){5}(indices.(hemi)) + ...
+                        -o.mrv.raw.(data_type){6}(indices.(hemi)))/4;
+                    o.mrv.(data_type).(hemi){8} = ...
+                        (o.mrv.raw.(data_type){1}(indices.(hemi)) + ...
+                        o.mrv.raw.(data_type){4}(indices.(hemi)))/2;
+                    o.(hemi).(data_type) = o.mrv.(data_type).(hemi){o.i_scan};
                 end
-                o.mrv.(data_type).(hemi){7} = ...
-                    (o.mrv.raw.(data_type){2}(indices.(hemi)) + ...
-                    -o.mrv.raw.(data_type){3}(indices.(hemi)) + ...
-                    o.mrv.raw.(data_type){5}(indices.(hemi)) + ...
-                    -o.mrv.raw.(data_type){6}(indices.(hemi)))/4;
-                o.mrv.(data_type).(hemi){8} = ...
-                    (o.mrv.raw.(data_type){1}(indices.(hemi)) + ...
-                    o.mrv.raw.(data_type){4}(indices.(hemi)))/2;
-                o.(hemi).(data_type) = o.mrv.(data_type).(hemi){o.i_scan};
             end
         end
         function data = save_prop(o)

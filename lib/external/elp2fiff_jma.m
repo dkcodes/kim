@@ -56,9 +56,15 @@ function elp2fiff_jma(polhemus_filename, write_to_filename)
 	C = read_polhemus_data(polhemus_filename);   
     % mne_suite and polhemus has different coordinate system
     % Adjusting the coordinate system
-    eloc.lpa = C.lpa([2 1 3]);
-    eloc.rpa = C.rpa([2 1 3]);
-    eloc.nasion = C.nas([2 1 3]);
+    if isfield_recursive(C, 'lpa')
+        eloc.lpa = C.lpa([2 1 3]);
+        eloc.rpa = C.rpa([2 1 3]);
+        eloc.nasion = C.nas([2 1 3]);
+    else
+        eloc.lpa = [-.1 0 0];
+        eloc.rpa = [.1 0 0];
+        eloc.nasion = [0 .1 0];
+    end
     eloc.x = C.xyz(:,2);
     eloc.y = C.xyz(:,1);
     eloc.z = C.xyz(:,3);

@@ -13,7 +13,7 @@ function FS4toDefaultCortexDK
     
     
 % 	FSsubjid = 'skeri0055_fs4';
-    FSsubjid = 'DK_fs4';
+    FSsubjid = 'SAK_fs4';
 	useMNEdec = true;
 	opt = 1;
 

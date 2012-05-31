@@ -8,7 +8,7 @@ classdef dartboard_plotter < handle
             obj.pat.text = 'off';
             obj.a_patch = a_patch;
         end
-        function obj = make_dartboard(obj, n_ring, n_spoke)
+        function obj = make_dartboard(obj, n_ring, n_spoke, dartboard_color)
             a_patch = obj.a_patch;
             r = 100;
             angles = linspace(2*pi+pi/2, 0+pi/2,  n_spoke+1);
@@ -42,17 +42,24 @@ classdef dartboard_plotter < handle
                 pat(i).fv = fv;
             end
             count = 1;
-            
+            c = color_scale(dartboard_color);
             for i_patch = 1:numel(a_patch)
                 ai_patch = a_patch(i_patch);
                 hold on;
-                if mod(count,2)==0
-                    % This is used to background color the patches
-                    colors = [0 0 0];
-                    colors = [1 1 1];
+                if nargin<4
+                    if mod(count,2)==0
+                        % This is used to background color the patches
+                        colors = [0 0 0];
+                        %                     colors = [1 1 1];
+                    else
+                        colors = [1 1 1];
+                    end
                 else
-                    colors = [1 1 1];
+                    
+                    colors = c(i_patch,:);
                 end
+                
+                
                 if isempty(intersect(ai_patch, n_spoke:n_spoke:n_spoke*n_ring))
                     count = count + 1;
                 end
@@ -100,7 +107,7 @@ classdef dartboard_plotter < handle
                 set(pat(ai_patch).h_axis, ...
                     'position', [axis_x-(axis_width/2) axis_y-(axis_height/2)  axis_width axis_height], ...
                     'XTick', [], 'YTick', [], 'color', 'none');
-                box on
+%                 box on
             end
             obj.pat = pat;
         end

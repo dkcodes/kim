@@ -24,6 +24,7 @@ classdef retino_patch < handle
       F
       Femp
       Vdata
+      V_model
       
       normalvec
       uvHiResVert

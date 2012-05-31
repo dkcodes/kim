@@ -12,7 +12,12 @@ dirs.eeg         = fullfile(dirs.subj, [subj_id '_EEG']);
 dirs.bem         = fullfile(dirs.eeg, 'bem');
 dirs.mne         = fullfile(dirs.eeg, '_MNE_');
 dirs.berkeley    = fullfile(dirs.data, 'Berkeley', subj_id);
-fwd_filename     = fullfile(dirs.mne, [subj_id '_fwd_sol_with_042611_meas.fif']);
+if exist('fwd_filename_sp', 'var')
+    fwd_filename     = fullfile(dirs.mne, fwd_filename_sp);
+    clear fwd_filename_sp;
+else
+    fwd_filename     = fullfile(dirs.mne, [subj_id '-fwd.fif']);
+end
 % sph_fwd_filename = fullfile(dirs.mne, [subj_id '-sph-fwd.fif']);
 
 %% Environment preparations
@@ -81,8 +86,8 @@ rdata.type = subj_data.type;
 rdata.cfg.process_list = subj_data.process_list;
 rdata.load_kernel();
 rdata.process_data();
-rdata.current = rdata.mean(:,:,:,125:275);
-rdata.current = rdata.misc{1}(:,:,:,136:end);
+rdata.current = rdata.mean(:,:,:,130:300);
+rdata.current = rdata.misc{1}(:,:,:,136:300);
 
 %% Make Interactive Figure
 figure(rs.h.main.fig); close(rs.h.main.fig);
@@ -122,7 +127,7 @@ for i_patch_def = 1:numel(s_patch_def)
     % % rs.fill_ctf_Femp(rs.a_patch, 'meg');
     % rs.fill_session_patch_timefcn_emp;
     x = linspace(0, 406*1000/541, 406);
-    plot(x, rs.ctf', 'linewidth', 2);
+    plot(1:size(rs.ctf, 2), rs.ctf', 'linewidth', 2);
     tctf{i_patch_def} = rs.ctf';
     title(pdef)
 %     
@@ -163,3 +168,27 @@ legend('v1', 'v2', 'v3', 'c1', 'c2', 'c3')
 return
 %%
 
+rs.a_patch = setdiff(1:96, [8    15    13    20    39]);
+rs.a_patch = patch_def.all;
+rs.a_source = [1 2 3];
+rs.fill_session_patch_Vdata;
+rs.fill_ctf('meg', rs.a_patch);
+rs.fill_session_patch_timefcn;
+rs.fill_Femp('meg', rs.a_patch);
+% % rs.fill_ctf_Femp(rs.a_patch, 'meg');
+% rs.fill_session_patch_timefcn_emp;
+x = linspace(0, 406*1000/541, 406);
+plot(x, rs.ctf', 'linewidth', 2);
+tctf{i_patch_def} = rs.ctf';
+title(pdef)
+
+%%
+clear d a;
+a_patch = rs.a_patch;
+a = zeros(96, 128, 1, 406);
+a(a_patch,:,1,:)=rdata.v_model(a_patch,:,2,:)-rdata.current(a_patch,:,2,:);
+a = a.^2;
+a = squeeze(a);
+for i = 1:96, d(i) = sum(sum(a(i,:,:))); end;
+
+close all; clear dp ans; dp = dartboard_plotter(1:96); dp.make_dartboard(4,24,d)

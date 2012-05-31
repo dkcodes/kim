@@ -30,6 +30,9 @@ a_chan             = [1:128];
 a_days             = 1;
 h_main             = 171;
 
+%% Special directory or filenames
+fwd_filename_sp    = 'DK_fwd_sol_with_042611_meas.fif';
+
 %% fMRI settings
 s_rois.name        = {'V3D-L'    'V2D-L'  'V1-L'    'V2V-L'    'V3V-L' ...
     'V3D-R'    'V2D-R'   'V1-R'   'V2V-R'    'V3V-R'    };
